@@ -3,12 +3,14 @@ const { body, validationResult } = require('express-validator');
 const { Estado, Carrera, DatosPersonales } = require('../models/ModelDBWhatsappLedasCallCenter.js');
 const reemplazos = require('../utils/remplazoCarreras.js');
 const replacePostgraduateDegrees = require('../services/procesarPregunta.js');
-const moment = require('moment');
 const validacionNumber = require('../utils/validationNumbers.js');
 const enviarMensajeHttpPost = require('../services/enviarMensajeHttpPost.js');
 const mensajeAEnviar = require('../services/mensajePersonalisado.js');
+const obtenerFechaActual = require('../utils/obtenerFechaActual.js');
 
 const manualCustomerEntry = async (req, res) => {
+    const fechaActual = obtenerFechaActual();
+    console.log(`esta es la fecha actual: ${fechaActual}`)
     try {
         const { nombre, apellido, correo, telefono, posgradoInteres, fechaIngresoMeta } = req.body;
 
@@ -35,8 +37,6 @@ const manualCustomerEntry = async (req, res) => {
             carrera = await Carrera.create({ id: uuidv4(), nombre: posgradoProcesado });
         }
 
-        const fechaIngresoFormateada = moment(fechaIngresoMeta, 'YYYY-MM-DD').format('YYYY-MM-DD HH:mm:ss');
-
         const mensajeEnviaria = await mensajeAEnviar(nombre, apellido, posgradoProcesado);
 
         const responseHttp = await enviarMensajeHttpPost(nuevoId, telefonoValido, `${nombre} ${apellido}`, posgradoProcesado, mensajeEnviaria);
@@ -55,8 +55,8 @@ const manualCustomerEntry = async (req, res) => {
             if (existingRecord) {
                 await DatosPersonales.update({
                     correo: correo,
-                    fecha_ingreso_meta: fechaIngresoFormateada,
-                    fecha_envio_what: moment().format('YYYY-MM-DD HH:mm:ss'),
+                    fecha_ingreso_meta: null,
+                    fecha_envio_wha: fechaActual,
                     enviado: true
                 }, {
                     where: {
@@ -74,8 +74,8 @@ const manualCustomerEntry = async (req, res) => {
                     carrera_id: carrera.id,
                     estado_id: estado.id,
                     enviado: true,
-                    fecha_ingreso_meta: fechaIngresoFormateada,
-                    fecha_envio_what: moment().format('YYYY-MM-DD HH:mm:ss')
+                    fecha_ingreso_meta: null,
+                    fecha_envio_wha: fechaActual
                 });
                 res.status(201).json({ message: 'Nuevo registro creado y mensaje enviado exitosamente.' });
             }
