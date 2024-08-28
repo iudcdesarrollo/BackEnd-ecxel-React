@@ -14,7 +14,7 @@ const corsOptions = {
 
 app.use(cors(corsOptions));
 app.use(express.json());
-app.use(codeInjectionPrevention);
+//app.use(codeInjectionPrevention);
 preventionOfDenialOfService(app);
 app.use(authMiddleware);
 
