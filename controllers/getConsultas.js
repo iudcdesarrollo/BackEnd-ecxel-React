@@ -25,9 +25,9 @@ const getConsultas = async (req, res) => {
         const whereConditions = {};
 
         const estadoIds = {
-            'gestionado': '3e4fd8eb-6546-11ef-bf62-0a5ad745e979',
-            'no-gestionado': '3e4fa1a0-6546-11ef-bf62-0a5ad745e979',
-            'interesado': '3e4fdb28-6546-11ef-bf62-0a5ad745e979'
+            'gestionado': 'b2f4b872-6656-11ef-bf62-0a5ad745e979',
+            'no-gestionado': 'b2f489dc-6656-11ef-bf62-0a5ad745e979',
+            'interesado': 'b2f4d1bc-6656-11ef-bf62-0a5ad745e979'
         };
 
         if (id) {
