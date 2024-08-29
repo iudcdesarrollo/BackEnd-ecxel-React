@@ -20,6 +20,8 @@ const getConsultas = async (req, res) => {
     try {
         const { tipo, telefono, id, fechaInicio, fechaFin } = req.query;
 
+        console.log(`datos enviados por el cliente en consultas: ${tipo},${telefono},${id},${fechaInicio},${fechaFin}`);
+
         const whereConditions = {};
 
         const estadoIds = {
@@ -62,6 +64,8 @@ const getConsultas = async (req, res) => {
                 carreraNombre: client.Carrera ? client.Carrera.nombre : 'Desconocido'
             };
 
+            console.log(`esto es lo que se envia ccomo respuesta de consoluta: ${result}`);
+
             return res.json(result);
         }
 
@@ -75,6 +79,8 @@ const getConsultas = async (req, res) => {
                 console.log('Cliente no encontrado');
                 return res.status(404).json({ message: 'Cliente inexistente' });
             }
+
+            console.log(`esto es lo que se envia ccomo respuesta de consoluta: ${client.id}`);
 
             return res.json({ id: client.id });
         }

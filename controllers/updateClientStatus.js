@@ -16,6 +16,8 @@ const { DatosPersonales, Estado } = require('../models/ModelDBWhatsappLedasCallC
 const updateClientStatus = async (req, res) => {
     const { id, estado } = req.body;
 
+    console.log(`esto es lo que llega en la consulta de update estados: ${id},${estado}`);
+
     if (!id || !estado) {
         return res.status(400).json({ message: 'ID and estado are required' });
     }
@@ -38,8 +40,10 @@ const updateClientStatus = async (req, res) => {
         );
 
         if (updated) {
+            console.log('Client status updated successfully');
             res.status(200).json({ message: 'Client status updated successfully' });
         } else {
+            console.log('Client not found');
             res.status(404).json({ message: 'Client not found' });
         }
     } catch (error) {
