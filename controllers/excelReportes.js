@@ -8,7 +8,7 @@ const ExcelJS = require('exceljs');
  * @param req - `req` is the request object which contains information about the HTTP request made by
  * the client to the server. It includes data such as request headers, query parameters, body content,
  * and more. In the provided code snippet, `req` is used to extract query parameters like `startDate`,
- * `endDate
+ * `endDate`
  * @param res - The `res` parameter in the `excelReports` function is the response object in
  * Express.js. It is used to send a response back to the client making the request. In this function,
  * the response object is used to send the generated Excel file as a downloadable attachment
@@ -20,11 +20,18 @@ const ExcelJS = require('exceljs');
  */
 const excelReports = async (req, res) => {
     try {
-        const { startDate, endDate, tipo, telefono } = req.query;
+        let { startDate, endDate, tipo, telefono } = req.query;
+
+        console.log(`fecha de inicio de la solicitud ${startDate}, fecha fin de la solicitud: ${endDate}`);
 
         if (!startDate || !endDate) {
             return res.status(400).json({ message: 'Por favor, proporciona ambas fechas: startDate y endDate.' });
         }
+
+        // Ajusta la fecha de fin a la última hora del día en UTC
+        let endDateTime = new Date(endDate);
+        endDateTime.setUTCHours(23, 59, 59, 999);
+        endDate = endDateTime.toISOString();
 
         const whereConditions = {
             fecha_envio_wha: {
@@ -105,6 +112,5 @@ const excelReports = async (req, res) => {
         res.status(500).json({ message: 'Error interno del servidor' });
     }
 };
-
 
 module.exports = excelReports;

@@ -27,6 +27,4 @@ router.get('/get/ReportsEcel',excelReports);// enpoint para crear el aexcel con 
 router.post('/createCustomer',createCustomer);// enpoint para crear un nuevo cliente en la base de datos...
 router.post('/update/clients', updateClient);// enpoint para actualizar los datos de un cliente en la base de datos...
 
-
-
 module.exports = router;
