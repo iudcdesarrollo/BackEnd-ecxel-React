@@ -36,84 +36,81 @@ const processExcelFile = async (filePath) => {
         }
 
         for (const row of data) {
-            const {
-                NOMBRE,
-                APELLIDO,
-                CORREO,
-                TELEFONO,
-                CARRERA: CARRERA_NOMBRE,
-                IA,
-                'FECHA INGRESO IA': FECHA_INGRESO_IA,
-                'FECHA INGRESO META': FECHA_INGRESO_META
-            } = row;
+            try {
+                const {
+                    NOMBRE,
+                    APELLIDO,
+                    CORREO,
+                    TELEFONO,
+                    CARRERA: CARRERA_NOMBRE,
+                    IA,
+                    'FECHA INGRESO IA': FECHA_INGRESO_IA,
+                    'FECHA INGRESO META': FECHA_INGRESO_META
+                } = row;
 
-            if (!CARRERA_NOMBRE) {
-                console.log('CARRERA_NOMBRE no proporcionado para la fila:', row);
-                continue;
-            }
-
-            console.log('Datos de la fila:', {
-                NOMBRE,
-                APELLIDO,
-                CORREO,
-                TELEFONO,
-                CARRERA_NOMBRE,
-                FECHA_INGRESO_META
-            });
-
-            const postgraduateProcessed = await replacePostgraduateDegrees(CARRERA_NOMBRE, reemplazos);
-
-            let carrera = await Carrera.findOne({ where: { nombre: postgraduateProcessed } });
-            if (!carrera) {
-                carrera = await Carrera.create({ nombre: postgraduateProcessed });
-            }
-
-            const fechaIngresoMeta = FECHA_INGRESO_META ? excelDateToJSDate(FECHA_INGRESO_META) : fechaPredeterminada;
-
-            const telefonoValido = validacionNumber(TELEFONO);
-
-            const record = {
-                id: uuidv4(),
-                fecha_ingreso_meta: fechaIngresoMeta,
-                nombres: NOMBRE,
-                apellidos: APELLIDO,
-                correo: CORREO,
-                telefono: telefonoValido,
-                carrera: postgraduateProcessed,
-                estado: 'SIN GESTIONAR',
-                fecha_envio_what: null,
-                enviado: 0
-            };
-
-            console.log('Registro a buscar o crear:', record);
-
-            const existingRecord = await DatosPersonales.findOne({
-                where: {
-                    nombres: record.nombres,
-                    apellidos: record.apellidos,
-                    telefono: record.telefono,
-                    carrera_id: carrera.id,
-                    estado_id: estado.id
+                if (!CARRERA_NOMBRE) {
+                    console.log('CARRERA_NOMBRE no proporcionado para la fila:', row);
+                    continue;
                 }
-            });
 
-            console.log('Registro existente encontrado:', existingRecord);
+                console.log('Datos de la fila:', {
+                    NOMBRE,
+                    APELLIDO,
+                    CORREO,
+                    TELEFONO,
+                    CARRERA_NOMBRE,
+                    FECHA_INGRESO_META
+                });
 
-            if (!existingRecord || existingRecord.enviado === 0) {
-                const mensajeEnviaria = await mensajeAEnviar(NOMBRE, APELLIDO, postgraduateProcessed);
+                const postgraduateProcessed = await replacePostgraduateDegrees(CARRERA_NOMBRE, reemplazos);
 
-                console.log('Mensaje a enviar:', mensajeEnviaria);
+                let carrera = await Carrera.findOne({ where: { nombre: postgraduateProcessed } });
+                if (!carrera) {
+                    carrera = await Carrera.create({ nombre: postgraduateProcessed });
+                }
 
-                const responseHttp = await enviarMensajeHttpPost(record.id, telefonoValido, `${NOMBRE} ${APELLIDO}`, postgraduateProcessed, mensajeEnviaria);
+                const fechaIngresoMeta = FECHA_INGRESO_META ? excelDateToJSDate(FECHA_INGRESO_META) : fechaPredeterminada;
+                const telefonoValido = validacionNumber(TELEFONO);
 
-                console.log('Respuesta del envío de mensaje:', responseHttp);
+                const record = {
+                    id: uuidv4(),
+                    fecha_ingreso_meta: fechaIngresoMeta,
+                    nombres: NOMBRE,
+                    apellidos: APELLIDO,
+                    correo: CORREO,
+                    telefono: telefonoValido,
+                    carrera: postgraduateProcessed,
+                    estado: 'SIN GESTIONAR',
+                    fecha_envio_what: null,
+                    enviado: 0
+                };
 
-                if (responseHttp.message === 'Mensaje enviado exitosamente') {
-                    record.fecha_envio_what = moment().format('YYYY-MM-DD HH:mm:ss');
-                    record.enviado = 1;
+                console.log('Registro a buscar o crear:', record);
 
-                    if (existingRecord) {
-                        try {
+                const existingRecord = await DatosPersonales.findOne({
+                    where: {
+                        nombres: record.nombres,
+                        apellidos: record.apellidos,
+                        telefono: record.telefono,
+                        carrera_id: carrera.id,
+                        estado_id: estado.id
+                    }
+                });
+
+                console.log('Registro existente encontrado:', existingRecord);
+
+                if (!existingRecord || existingRecord.enviado === 0) {
+                    const mensajeEnviaria = await mensajeAEnviar(NOMBRE, APELLIDO, postgraduateProcessed);
+                    console.log('Mensaje a enviar:', mensajeEnviaria);
+
+                    const responseHttp = await enviarMensajeHttpPost(record.id, telefonoValido, `${NOMBRE} ${APELLIDO}`, postgraduateProcessed, mensajeEnviaria);
+                    console.log('Respuesta del envío de mensaje:', responseHttp);
+
+                    if (responseHttp.message === 'Mensaje enviado exitosamente') {
+                        record.fecha_envio_what = moment().format('YYYY-MM-DD HH:mm:ss');
+                        record.enviado = 1;
+
+                        if (existingRecord) {
                             await DatosPersonales.update({
                                 fecha_envio_wha: record.fecha_envio_what,
                                 enviado: true
@@ -123,11 +120,7 @@ const processExcelFile = async (filePath) => {
                                 }
                             });
                             console.log('Registro actualizado:', existingRecord);
-                        } catch (updateError) {
-                            console.error('Error al actualizar datos en la base de datos:', updateError);
-                        }
-                    } else {
-                        try {
+                        } else {
                             await DatosPersonales.create({
                                 id: record.id,
                                 fecha_ingreso_meta: record.fecha_ingreso_meta,
@@ -141,21 +134,20 @@ const processExcelFile = async (filePath) => {
                                 fecha_envio_wha: record.fecha_envio_what
                             });
                             console.log('Nuevo registro creado:', record);
-                        } catch (createError) {
-                            console.error('Error al insertar datos en la base de datos:', createError);
                         }
                     }
+                } else {
+                    console.log('Mensaje ya enviado, no se reenvía:', record);
                 }
-            } else {
-                console.log('Mensaje ya enviado, no se reenvía:', record);
-            }
 
-            processedData.push(record);
+                processedData.push(record);
+            } catch (rowError) {
+                console.error('Error al procesar la fila:', row, 'Error:', rowError.message);
+            }
         }
 
         const jsonFilePath = path.join(__dirname, '../temp', `datos_procesados_${moment().format('YYYYMMDD_HHmmss')}.json`);
         fs.writeFileSync(jsonFilePath, JSON.stringify(processedData, null, 2), 'utf8');
-
         console.log('Archivo JSON guardado en:', jsonFilePath);
 
         await deletedFile(filePath);
