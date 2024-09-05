@@ -1,4 +1,4 @@
-const { Estado, Carrera, DatosPersonales } = require('../models/ModelDBWhatsappLedasCallCenter.js');
+const { Estado, Carrera, DatosPersonales, Servicio } = require('../models/ModelDBWhatsappLedasCallCenter.js');
 const { Op } = require('sequelize');
 const ExcelJS = require('exceljs');
 
@@ -8,39 +8,42 @@ const ExcelJS = require('exceljs');
  * @param req - `req` is the request object which contains information about the HTTP request made by
  * the client to the server. It includes data such as request headers, query parameters, body content,
  * and more. In the provided code snippet, `req` is used to extract query parameters like `startDate`,
- * `endDate`
+ * `endDate`, `telefono`, and `servicioID`.
  * @param res - The `res` parameter in the `excelReports` function is the response object in
  * Express.js. It is used to send a response back to the client making the request. In this function,
  * the response object is used to send the generated Excel file as a downloadable attachment
- * (`ReporteClientes.xlsx`)
- * @returns The `excelReports` function is returning an Excel spreadsheet file containing data based on
- * the query parameters `startDate`, `endDate`, `tipo`, and `telefono` from the request. The function
+ * (`ReporteClientes.xlsx`).
+ * @returns The `excelReports` function returns an Excel spreadsheet file containing data based on
+ * the query parameters `startDate`, `endDate`, `telefono`, and `servicioID` from the request. The function
  * first checks if `startDate` and `endDate` are provided, and if not, it returns a 400 status with a
  * message indicating that both dates are required.
  */
 const excelReports = async (req, res) => {
     try {
-        let { startDate, endDate, tipo, telefono } = req.query;
+        let { startDate, endDate, telefono, servicioID } = req.query;
 
-        console.log(`fecha de inicio de la solicitud ${startDate}, fecha fin de la solicitud: ${endDate}`);
+        //console.log(`Fecha de inicio de la solicitud: ${startDate}, Fecha fin de la solicitud: ${endDate}`);
 
         if (!startDate || !endDate) {
             return res.status(400).json({ message: 'Por favor, proporciona ambas fechas: startDate y endDate.' });
         }
 
-        // Ajusta la fecha de fin a la última hora del día en UTC
-        let endDateTime = new Date(endDate);
+        const startDateTime = new Date(startDate);
+        const endDateTime = new Date(endDate);
         endDateTime.setUTCHours(23, 59, 59, 999);
-        endDate = endDateTime.toISOString();
 
         const whereConditions = {
             fecha_envio_wha: {
-                [Op.between]: [new Date(startDate), new Date(endDate)],
+                [Op.between]: [startDateTime, endDateTime],
             },
         };
 
         if (telefono) {
             whereConditions.telefono = telefono;
+        }
+
+        if (servicioID) {
+            whereConditions.servicio_id = servicioID;
         }
 
         const clients = await DatosPersonales.findAll({
@@ -54,6 +57,10 @@ const excelReports = async (req, res) => {
                     model: Carrera,
                     attributes: ['nombre'],
                 },
+                {
+                    model: Servicio,
+                    attributes: ['nombre'],
+                }
             ],
             attributes: [
                 'nombres',
@@ -62,6 +69,7 @@ const excelReports = async (req, res) => {
                 'telefono',
                 'enviado',
                 'fecha_envio_wha',
+                'fecha_ingreso_meta'
             ],
         });
 
@@ -80,20 +88,26 @@ const excelReports = async (req, res) => {
                 { header: 'Teléfono', key: 'telefono', width: 15 },
                 { header: 'Enviado', key: 'enviado', width: 10 },
                 { header: 'Fecha Envio WhatsApp', key: 'fecha_envio_wha', width: 20 },
+                { header: 'Fecha Ingreso Meta', key: 'fecha_ingreso_meta', width: 20 },
                 { header: 'Estado', key: 'estado', width: 20 },
                 { header: 'Carrera', key: 'carrera', width: 20 },
+                { header: 'Servicio', key: 'servicio', width: 20 },
             ];
 
             data.forEach(client => {
+                const fechaEnvioWha = client.fecha_envio_wha ? new Date(client.fecha_envio_wha).toISOString().slice(0, 10) : 'No disponible';
+                const fechaIngresoMeta = client.fecha_ingreso_meta ? new Date(client.fecha_ingreso_meta).toISOString().slice(0, 10) : 'No disponible';
                 sheet.addRow({
                     nombres: client.nombres,
                     apellidos: client.apellidos,
                     correo: client.correo,
                     telefono: client.telefono,
                     enviado: client.enviado ? 'Sí' : 'No',
-                    fecha_envio_wha: client.fecha_envio_wha.toISOString().slice(0, 10),
+                    fecha_envio_wha: fechaEnvioWha,
+                    fecha_ingreso_meta: fechaIngresoMeta,
                     estado: client.Estado.nombre,
                     carrera: client.Carrera.nombre,
+                    servicio: client.Servicio.nombre,
                 });
             });
         };
