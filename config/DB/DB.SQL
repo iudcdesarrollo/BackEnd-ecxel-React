@@ -1,33 +1,46 @@
+-- Crear base de datos si no existe
 CREATE DATABASE IF NOT EXISTS WhatsappLedasCallCenter;
 
+-- Usar la base de datos
 USE WhatsappLedasCallCenter;
 
+-- Crear tabla estados si no existe
 CREATE TABLE IF NOT EXISTS estados (
-    id CHAR(36) PRIMARY KEY,
-    nombre VARCHAR(255) NOT NULL
+  id CHAR(36) NOT NULL PRIMARY KEY,
+  nombre VARCHAR(255) NOT NULL
 );
 
+-- Crear tabla carreras si no existe
 CREATE TABLE IF NOT EXISTS carreras (
-    id CHAR(36) PRIMARY KEY,
-    nombre VARCHAR(255) NOT NULL UNIQUE
+  id CHAR(36) NOT NULL PRIMARY KEY,
+  nombre VARCHAR(255) NOT NULL
 );
 
+-- Crear tabla servicios si no existe
+CREATE TABLE IF NOT EXISTS servicios (
+  id CHAR(36) NOT NULL PRIMARY KEY,
+  nombre VARCHAR(255) NOT NULL
+);
+
+-- Crear tabla datos_personales si no existe
 CREATE TABLE IF NOT EXISTS datos_personales (
-    id CHAR(36) PRIMARY KEY,
-    fecha_ingreso_meta DATETIME DEFAULT NULL,
-    nombres VARCHAR(255) NOT NULL,
-    apellidos VARCHAR(255) NOT NULL,
-    correo VARCHAR(255) NOT NULL,
-    telefono VARCHAR(255) NOT NULL,
-    carrera_id CHAR(36) NOT NULL,
-    estado_id CHAR(36) NOT NULL,
-    enviado BOOLEAN NOT NULL,
-    fecha_envio_wha DATETIME,
-    FOREIGN KEY (carrera_id) REFERENCES carreras(id),
-    FOREIGN KEY (estado_id) REFERENCES estados(id)
+  id VARCHAR(255) NOT NULL PRIMARY KEY,
+  fecha_ingreso_meta DATE DEFAULT NULL,
+  nombres VARCHAR(255) NOT NULL,
+  apellidos VARCHAR(255) NOT NULL,
+  correo VARCHAR(255) NOT NULL,
+  telefono VARCHAR(255) NOT NULL,
+  carrera_id CHAR(36) NOT NULL,
+  estado_id CHAR(36) NOT NULL,
+  servicio_id CHAR(36) NOT NULL,
+  enviado BOOLEAN NOT NULL,
+  fecha_envio_wha DATE DEFAULT NULL,
+  CONSTRAINT fk_carrera_id FOREIGN KEY (carrera_id) REFERENCES carreras(id),
+  CONSTRAINT fk_estado_id FOREIGN KEY (estado_id) REFERENCES estados(id),
+  CONSTRAINT fk_servicio_id FOREIGN KEY (servicio_id) REFERENCES servicios(id)
 );
 
-INSERT INTO estados (id, nombre) VALUES
-    (UUID(), 'SIN GESTIONAR'),
-    (UUID(), 'GESTIONADO'),
-    (UUID(), 'INTERESADO');
+-- Indices opcionales para mejorar la consulta
+CREATE INDEX IF NOT EXISTS idx_carrera_id ON datos_personales(carrera_id);
+CREATE INDEX IF NOT EXISTS idx_estado_id ON datos_personales(estado_id);
+CREATE INDEX IF NOT EXISTS idx_servicio_id ON datos_personales(servicio_id);

@@ -1,6 +1,6 @@
 const { v4: uuidv4 } = require('uuid');
 const { body, validationResult } = require('express-validator');
-const { Estado, Carrera, DatosPersonales } = require('../models/ModelDBWhatsappLedasCallCenter.js');
+const { Estado, Carrera, DatosPersonales, Servicio } = require('../models/ModelDBWhatsappLedasCallCenter.js');
 const reemplazos = require('../utils/remplazoCarreras.js');
 const replacePostgraduateDegrees = require('../services/procesarPregunta.js');
 const validacionNumber = require('../utils/validationNumbers.js');
@@ -10,11 +10,12 @@ const obtenerFechaActual = require('../utils/obtenerFechaActual.js');
 
 const manualCustomerEntry = async (req, res) => {
     const fechaActual = obtenerFechaActual();
-    console.log(`esta es la fecha actual: ${fechaActual}`)
-    try {
-        const { nombre, apellido, correo, telefono, posgradoInteres, fechaIngresoMeta } = req.body;
+    console.log(`Esta es la fecha actual: ${fechaActual}`);
 
-        if (!nombre || !apellido || !correo || !telefono || !posgradoInteres || !fechaIngresoMeta) {
+    try {
+        const { nombre, apellido, correo, telefono, posgradoInteres, fechaIngresoMeta, servicio } = req.body;
+
+        if (!nombre || !apellido || !correo || !telefono || !posgradoInteres || !fechaIngresoMeta || !servicio) {
             return res.status(400).json({ message: 'Todos los campos son obligatorios.' });
         }
 
@@ -37,6 +38,11 @@ const manualCustomerEntry = async (req, res) => {
             carrera = await Carrera.create({ id: uuidv4(), nombre: posgradoProcesado });
         }
 
+        let servicioEncontrado = await Servicio.findOne({ where: { nombre: servicio } });
+        if (!servicioEncontrado) {
+            servicioEncontrado = await Servicio.create({ id: uuidv4(), nombre: servicio });
+        }
+
         const mensajeEnviaria = await mensajeAEnviar(nombre, apellido, posgradoProcesado);
 
         const responseHttp = await enviarMensajeHttpPost(nuevoId, telefonoValido, `${nombre} ${apellido}`, posgradoProcesado, mensajeEnviaria);
@@ -48,14 +54,15 @@ const manualCustomerEntry = async (req, res) => {
                     apellidos: apellido,
                     telefono: telefonoValido,
                     carrera_id: carrera.id,
-                    estado_id: estado.id
+                    estado_id: estado.id,
+                    servicio_id: servicioEncontrado.id
                 }
             });
 
             if (existingRecord) {
                 await DatosPersonales.update({
                     correo: correo,
-                    fecha_ingreso_meta: null,
+                    fecha_ingreso_meta: fechaIngresoMeta,
                     fecha_envio_wha: fechaActual,
                     enviado: true
                 }, {
@@ -73,8 +80,9 @@ const manualCustomerEntry = async (req, res) => {
                     telefono: telefonoValido,
                     carrera_id: carrera.id,
                     estado_id: estado.id,
+                    servicio_id: servicioEncontrado.id,
                     enviado: true,
-                    fecha_ingreso_meta: null,
+                    fecha_ingreso_meta: fechaIngresoMeta,
                     fecha_envio_wha: fechaActual
                 });
                 res.status(201).json({ message: 'Nuevo registro creado y mensaje enviado exitosamente.' });
