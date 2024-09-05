@@ -1,4 +1,4 @@
-const { DatosPersonales, Carrera, Estado } = require('../models/ModelDBWhatsappLedasCallCenter');
+const { DatosPersonales, Carrera, Estado, Servicio } = require('../models/ModelDBWhatsappLedasCallCenter');
 const { v4: uuidv4 } = require('uuid');
 
 /**
@@ -44,6 +44,15 @@ const createCustomer = async (req, res) => {
             console.log('Estado creado:', estado.id);
         }
 
+        let servicio = await Servicio.findOne({ where: { nombre: 'SERVICIO NO IDENTIFICADO' } });
+        if (!servicio) {
+            servicio = await Servicio.create({
+                id: uuidv4(),
+                nombre: 'SERVICIO NO IDENTIFICADO'
+            });
+            console.log('Servicio creado:', servicio.id);
+        }
+
         const defaultValues = {
             id: uuidv4(),
             nombres: 'Nombre predeterminado',
@@ -52,6 +61,7 @@ const createCustomer = async (req, res) => {
             telefono: telefono,
             carrera_id: carrera.id,
             estado_id: estado.id,
+            servicio_id: servicio.id,
             enviado: false,
             fecha_envio_wha: new Date(),
             fecha_ingreso_meta: null,
