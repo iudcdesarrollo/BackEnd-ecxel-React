@@ -47,7 +47,7 @@ const UploadExcelFiles = async (req, res) => {
 
             //await insertDataFromJson(jsonFilePath);
 
-            //await deletedFile(jsonFilePath);
+            await deletedFile(jsonFilePath);
 
             res.json({
                 message: 'Datos procesados e insertados exitosamente.',
