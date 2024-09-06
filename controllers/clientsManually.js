@@ -10,10 +10,15 @@ const obtenerFechaActual = require('../utils/obtenerFechaActual.js');
 
 const manualCustomerEntry = async (req, res) => {
     const fechaActual = obtenerFechaActual();
-    console.log(`Esta es la fecha actual: ${fechaActual}`);
-
     try {
         const { nombre, apellido, correo, telefono, posgradoInteres, fechaIngresoMeta, servicio } = req.body;
+
+        console.log(servicio);
+
+        const serviciosPermitidos = ['CallCenter', 'Veterinaria', 'IPS'];
+        if (!serviciosPermitidos.includes(servicio)) {
+            return res.status(400).json({ message: 'Los servicios permitidos solo son "VETERINARIA, IPS o el CallCenter"' });
+        }
 
         if (!nombre || !apellido || !correo || !telefono || !posgradoInteres || !fechaIngresoMeta || !servicio) {
             return res.status(400).json({ message: 'Todos los campos son obligatorios.' });

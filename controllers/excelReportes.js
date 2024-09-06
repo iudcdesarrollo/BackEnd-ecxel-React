@@ -3,26 +3,24 @@ const { Op } = require('sequelize');
 const ExcelJS = require('exceljs');
 
 /**
- * The excelReports function generates an Excel report based on specified query parameters and sends it
- * as a downloadable file in response.
- * @param req - `req` is the request object which contains information about the HTTP request made by
- * the client to the server. It includes data such as request headers, query parameters, body content,
- * and more. In the provided code snippet, `req` is used to extract query parameters like `startDate`,
- * `endDate`, `telefono`, and `servicioID`.
- * @param res - The `res` parameter in the `excelReports` function is the response object in
- * Express.js. It is used to send a response back to the client making the request. In this function,
- * the response object is used to send the generated Excel file as a downloadable attachment
+ * La función excelReports genera un reporte en Excel basado en los parámetros de consulta especificados
+ * y lo envía como un archivo descargable en la respuesta.
+ * @param req - `req` es el objeto de solicitud que contiene información sobre la solicitud HTTP realizada por
+ * el cliente al servidor. Incluye datos como encabezados de solicitud, parámetros de consulta, contenido del cuerpo,
+ * y más. En el fragmento de código proporcionado, `req` se usa para extraer parámetros de consulta como `startDate`,
+ * `endDate`, `telefono`, `servicioID` y `servicioNombre`.
+ * @param res - El parámetro `res` en la función `excelReports` es el objeto de respuesta en
+ * Express.js. Se utiliza para enviar una respuesta de vuelta al cliente que realiza la solicitud. En esta función,
+ * el objeto de respuesta se usa para enviar el archivo Excel generado como un archivo adjunto descargable
  * (`ReporteClientes.xlsx`).
- * @returns The `excelReports` function returns an Excel spreadsheet file containing data based on
- * the query parameters `startDate`, `endDate`, `telefono`, and `servicioID` from the request. The function
- * first checks if `startDate` and `endDate` are provided, and if not, it returns a 400 status with a
- * message indicating that both dates are required.
+ * @returns La función `excelReports` devuelve un archivo de hoja de cálculo de Excel que contiene datos basados en
+ * los parámetros de consulta `startDate`, `endDate`, `telefono`, `servicioID` y `servicioNombre` de la solicitud. La función
+ * primero verifica si se proporcionan `startDate` y `endDate`, y si no, devuelve un estado 400 con un mensaje
+ * indicando que se requieren ambas fechas.
  */
 const excelReports = async (req, res) => {
     try {
-        let { startDate, endDate, telefono, servicioID } = req.query;
-
-        //console.log(`Fecha de inicio de la solicitud: ${startDate}, Fecha fin de la solicitud: ${endDate}`);
+        let { startDate, endDate, telefono, servicioID, servicioNombre } = req.query;
 
         if (!startDate || !endDate) {
             return res.status(400).json({ message: 'Por favor, proporciona ambas fechas: startDate y endDate.' });
@@ -42,8 +40,19 @@ const excelReports = async (req, res) => {
             whereConditions.telefono = telefono;
         }
 
-        if (servicioID) {
-            whereConditions.servicio_id = servicioID;
+        let servicioIDToUse = servicioID;
+
+        if (servicioNombre) {
+            const servicio = await Servicio.findOne({ where: { nombre: servicioNombre } });
+            if (servicio) {
+                servicioIDToUse = servicio.id;
+            } else {
+                return res.status(400).json({ message: 'Nombre de servicio no encontrado.' });
+            }
+        }
+
+        if (servicioIDToUse) {
+            whereConditions.servicio_id = servicioIDToUse;
         }
 
         const clients = await DatosPersonales.findAll({
