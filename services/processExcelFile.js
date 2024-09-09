@@ -87,14 +87,10 @@ const processExcelFile = async (filePath, nameServicio) => {
 
                 console.log('Registro a buscar o crear:', record);
 
+                // Busca un registro existente por teléfono
                 const existingRecord = await DatosPersonales.findOne({
                     where: {
-                        nombres: record.nombres,
-                        apellidos: record.apellidos,
-                        telefono: record.telefono,
-                        carrera_id: record.carrera_id,
-                        estado_id: record.estado_id,
-                        servicio_id: record.servicio_id
+                        telefono: record.telefono
                     }
                 });
 
@@ -105,15 +101,15 @@ const processExcelFile = async (filePath, nameServicio) => {
                     console.log('Mensaje a enviar:', mensajeEnviaria);
 
                     const responseHttp = await enviarMensajeHttpPost(record.id, telefonoValido, `${NOMBRE} ${APELLIDO}`, postgraduateProcessed, mensajeEnviaria);
-                    console.log('Respuesta del envío de mensaje:', responseHttp);
+                    console.log(`mensaje server de jesus: ${responseHttp.message}`);
 
                     if (responseHttp.message === 'Mensaje enviado exitosamente') {
-                        record.fecha_envio_what = moment().format('YYYY-MM-DD HH:mm:ss');
+                        record.fecha_envio_wha = moment().format('YYYY-MM-DD HH:mm:ss');
                         record.enviado = 1;
 
                         if (existingRecord) {
                             await DatosPersonales.update({
-                                fecha_envio_wha: record.fecha_envio_what,
+                                fecha_envio_wha: record.fecha_envio_wha,
                                 enviado: true
                             }, {
                                 where: {
@@ -133,7 +129,7 @@ const processExcelFile = async (filePath, nameServicio) => {
                                 estado_id: record.estado_id,
                                 servicio_id: record.servicio_id,
                                 enviado: true,
-                                fecha_envio_wha: record.fecha_envio_what
+                                fecha_envio_wha: record.fecha_envio_wha
                             });
                             console.log('Nuevo registro creado:', record);
                         }

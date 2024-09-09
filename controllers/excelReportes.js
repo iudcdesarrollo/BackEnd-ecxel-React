@@ -20,7 +20,9 @@ const ExcelJS = require('exceljs');
  */
 const excelReports = async (req, res) => {
     try {
-        let { startDate, endDate, telefono, servicioID, servicioNombre } = req.query;
+        let { startDate, endDate, telefono, servicioNombre } = req.query;
+
+        console.log(`esto es lo que se manda por la query para asi mismo ver: ${startDate}, ${endDate}, ${telefono}, ${servicioNombre}`)
 
         if (!startDate || !endDate) {
             return res.status(400).json({ message: 'Por favor, proporciona ambas fechas: startDate y endDate.' });
@@ -40,19 +42,13 @@ const excelReports = async (req, res) => {
             whereConditions.telefono = telefono;
         }
 
-        let servicioIDToUse = servicioID;
-
         if (servicioNombre) {
             const servicio = await Servicio.findOne({ where: { nombre: servicioNombre } });
             if (servicio) {
-                servicioIDToUse = servicio.id;
+                whereConditions.servicio_id = servicio.id;
             } else {
                 return res.status(400).json({ message: 'Nombre de servicio no encontrado.' });
             }
-        }
-
-        if (servicioIDToUse) {
-            whereConditions.servicio_id = servicioIDToUse;
         }
 
         const clients = await DatosPersonales.findAll({

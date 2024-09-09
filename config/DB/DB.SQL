@@ -39,8 +39,3 @@ CREATE TABLE IF NOT EXISTS datos_personales (
   CONSTRAINT fk_estado_id FOREIGN KEY (estado_id) REFERENCES estados(id),
   CONSTRAINT fk_servicio_id FOREIGN KEY (servicio_id) REFERENCES servicios(id)
 );
-
--- Indices opcionales para mejorar la consulta
-CREATE INDEX IF NOT EXISTS idx_carrera_id ON datos_personales(carrera_id);
-CREATE INDEX IF NOT EXISTS idx_estado_id ON datos_personales(estado_id);
-CREATE INDEX IF NOT EXISTS idx_servicio_id ON datos_personales(servicio_id);
