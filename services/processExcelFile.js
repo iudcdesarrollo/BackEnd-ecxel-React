@@ -44,6 +44,9 @@ const processExcelFile = async (filePath, nameServicio) => {
             estado = await Estado.create({ nombre: 'sin gestionar' });
         }
 
+        // Usamos un Set para asegurarnos de que solo se envíe un mensaje por número de teléfono
+        const enviados = new Set();
+
         for (const row of data) {
             try {
                 const {
@@ -72,6 +75,11 @@ const processExcelFile = async (filePath, nameServicio) => {
                 const fechaIngresoMeta = FECHA_INGRESO_META ? excelDateToJSDate(FECHA_INGRESO_META) : fechaPredeterminada;
                 const telefonoValido = validacionNumber(TELEFONO);
 
+                if (enviados.has(telefonoValido)) {
+                    console.log('Mensaje ya enviado a este número, no se reenvía:', telefonoValido);
+                    continue;
+                }
+                
                 const record = {
                     id: uuidv4(),
                     fecha_ingreso_meta: fechaIngresoMeta,
@@ -85,57 +93,59 @@ const processExcelFile = async (filePath, nameServicio) => {
                     enviado: 0
                 };
 
-                console.log('Registro a buscar o crear:', record);
-
-                // Busca un registro existente por teléfono
                 const existingRecord = await DatosPersonales.findOne({
                     where: {
-                        telefono: record.telefono
+                        telefono: record.telefono,
+                        servicio_id: record.servicio_id
                     }
                 });
 
-                console.log('Registro existente encontrado:', existingRecord);
-
-                if (!existingRecord || existingRecord.enviado === 0) {
-                    const mensajeEnviaria = await mensajeAEnviar(NOMBRE, APELLIDO, postgraduateProcessed);
-                    console.log('Mensaje a enviar:', mensajeEnviaria);
-
-                    const responseHttp = await enviarMensajeHttpPost(record.id, telefonoValido, `${NOMBRE} ${APELLIDO}`, postgraduateProcessed, mensajeEnviaria);
-                    console.log(`mensaje server de jesus: ${responseHttp.message}`);
-
-                    if (responseHttp.message === 'Mensaje enviado exitosamente') {
-                        record.fecha_envio_wha = moment().format('YYYY-MM-DD HH:mm:ss');
-                        record.enviado = 1;
-
-                        if (existingRecord) {
-                            await DatosPersonales.update({
-                                fecha_envio_wha: record.fecha_envio_wha,
-                                enviado: true
-                            }, {
-                                where: {
-                                    id: existingRecord.id
-                                }
-                            });
-                            console.log('Registro actualizado:', existingRecord);
-                        } else {
-                            await DatosPersonales.create({
-                                id: record.id,
-                                fecha_ingreso_meta: record.fecha_ingreso_meta,
-                                nombres: record.nombres,
-                                apellidos: record.apellidos,
-                                correo: record.correo,
-                                telefono: record.telefono,
-                                carrera_id: record.carrera_id,
-                                estado_id: record.estado_id,
-                                servicio_id: record.servicio_id,
-                                enviado: true,
-                                fecha_envio_wha: record.fecha_envio_wha
-                            });
-                            console.log('Nuevo registro creado:', record);
-                        }
+                if (existingRecord) {
+                    if (existingRecord.enviado === 1) {
+                        console.log('Mensaje ya enviado, no se reenvía:', record);
+                        continue;
                     }
+                }
+
+                const mensajeEnviaria = await mensajeAEnviar(NOMBRE, APELLIDO, postgraduateProcessed);
+
+                const responseHttp = await enviarMensajeHttpPost(record.id, telefonoValido, `${NOMBRE} ${APELLIDO}`, postgraduateProcessed, mensajeEnviaria);
+                console.log(`mensaje server de jesus: ${responseHttp.message}`);
+
+                if (responseHttp.message === 'Mensaje enviado exitosamente') {
+                    record.fecha_envio_wha = moment().format('YYYY-MM-DD HH:mm:ss');
+                    record.enviado = 1;
+
+                    if (existingRecord) {
+                        await DatosPersonales.update({
+                            fecha_envio_wha: record.fecha_envio_wha,
+                            enviado: true
+                        }, {
+                            where: {
+                                id: existingRecord.id
+                            }
+                        });
+                        console.log('Registro actualizado:', existingRecord);
+                    } else {
+                        await DatosPersonales.create({
+                            id: record.id,
+                            fecha_ingreso_meta: record.fecha_ingreso_meta,
+                            nombres: record.nombres,
+                            apellidos: record.apellidos,
+                            correo: record.correo,
+                            telefono: record.telefono,
+                            carrera_id: record.carrera_id,
+                            estado_id: record.estado_id,
+                            servicio_id: record.servicio_id,
+                            enviado: true,
+                            fecha_envio_wha: record.fecha_envio_wha
+                        });
+                        console.log('Nuevo registro creado:', record);
+                    }
+
+                    enviados.add(telefonoValido);
                 } else {
-                    console.log('Mensaje ya enviado, no se reenvía:', record);
+                    console.log('No se envió el mensaje. Respuesta del servidor:', responseHttp.message);
                 }
 
                 processedData.push(record);
