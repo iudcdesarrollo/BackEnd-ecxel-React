@@ -4,23 +4,15 @@ const { Op } = require('sequelize');
 /**
  * The function `getConsultas` retrieves client data based on query parameters such as type, phone
  * number, and ID, handling different conditions and returning the results in a structured format.
- * @param req - `req` is the request object which contains information about the HTTP request such as
- * headers, parameters, body, etc. In this context, `req.query` is used to access the query parameters
- * sent in the request URL. The query parameters can be accessed as key-value pairs in the `req.query`
- * @param res - The `res` parameter in the `getConsultas` function is the response object that will be
- * used to send the response back to the client making the request. It is typically used to send HTTP
- * responses with data or error messages. In the provided code snippet, you can see that the `res`
- * @returns The `getConsultas` function is returning either a single client object or an array of
- * client objects based on the query parameters provided in the request. If the `id` query parameter is
- * provided, it will return a single client object matching that ID. If the `tipo` or `telefono` query
- * parameters are provided, it will return an array of client objects based on the filtering
- * conditions.
+ * This version includes optional pagination based on `page` and `limit` query parameters.
+ * @param req - `req` is the request object containing HTTP request data, including query parameters.
+ * @param res - The `res` parameter is the response object used to send the response back to the client.
  */
 const getConsultas = async (req, res) => {
     try {
-        const { tipo, telefono, id, fechaInicio, fechaFin, nameService } = req.query;
+        const { tipo, telefono, id, fechaInicio, fechaFin, nameService, page = 1, limit = 10 } = req.query;
 
-        console.log(`Datos enviados por el cliente en consultas: ${tipo}, ${telefono}, ${id}, ${fechaInicio}, ${fechaFin}, ${nameService}`);
+        console.log(`Datos enviados por el cliente en consultas: ${tipo}, ${telefono}, ${id}, ${fechaInicio}, ${fechaFin}, ${nameService}, page: ${page}, limit: ${limit}`);
 
         if (!nameService) {
             return res.status(400).json({ message: 'El nombre del servicio es obligatorio' });
@@ -49,23 +41,10 @@ const getConsultas = async (req, res) => {
             const client = await DatosPersonales.findOne({
                 where: { id, servicio_id: servicio.id },
                 include: [
-                    {
-                        model: Estado,
-                        attributes: ['nombre']
-                    },
-                    {
-                        model: Carrera,
-                        attributes: ['nombre']
-                    }
+                    { model: Estado, attributes: ['nombre'] },
+                    { model: Carrera, attributes: ['nombre'] }
                 ],
-                attributes: [
-                    'nombres',
-                    'apellidos',
-                    'correo',
-                    'telefono',
-                    'enviado',
-                    'fecha_envio_wha'
-                ]
+                attributes: ['nombres', 'apellidos', 'correo', 'telefono', 'enviado', 'fecha_envio_wha']
             });
 
             if (!client) {
@@ -78,8 +57,6 @@ const getConsultas = async (req, res) => {
                 estadoNombre: client.Estado ? client.Estado.nombre : 'Desconocido',
                 carreraNombre: client.Carrera ? client.Carrera.nombre : 'Desconocido'
             };
-
-            console.log(`Esto es lo que se envía como respuesta de consulta: ${result}`);
 
             return res.json(result);
         }
@@ -95,8 +72,6 @@ const getConsultas = async (req, res) => {
                 return res.status(404).json({ message: 'Cliente inexistente' });
             }
 
-            console.log(`Esto es lo que se envía como respuesta de consulta: ${client.id}`);
-
             return res.json({ id: client.id });
         }
 
@@ -105,7 +80,6 @@ const getConsultas = async (req, res) => {
             if (estadoId) {
                 whereConditions.estado_id = estadoId;
             } else {
-                console.log('Tipo de consulta no válido');
                 return res.status(400).json({ message: 'Tipo de consulta no válido' });
             }
         }
@@ -117,35 +91,35 @@ const getConsultas = async (req, res) => {
             };
         }
 
-        const clients = await DatosPersonales.findAll({
+        const offset = (parseInt(page) - 1) * parseInt(limit);
+
+        const clients = await DatosPersonales.findAndCountAll({
             where: whereConditions,
             include: [
-                {
-                    model: Estado,
-                    attributes: ['nombre']
-                },
-                {
-                    model: Carrera,
-                    attributes: ['nombre']
-                }
+                { model: Estado, attributes: ['nombre'] },
+                { model: Carrera, attributes: ['nombre'] }
             ],
-            attributes: [
-                'nombres',
-                'apellidos',
-                'correo',
-                'telefono',
-                'enviado',
-                'fecha_envio_wha'
-            ]
+            attributes: ['nombres', 'apellidos', 'correo', 'telefono', 'enviado', 'fecha_envio_wha'],
+            limit: parseInt(limit),
+            offset: offset,
+            order: [['fecha_envio_wha', 'DESC']]
         });
 
-        const result = clients.map(client => ({
+        const totalPages = Math.ceil(clients.count / limit);
+
+        const result = clients.rows.map(client => ({
             ...client.toJSON(),
             estadoNombre: client.Estado ? client.Estado.nombre : 'Desconocido',
             carreraNombre: client.Carrera ? client.Carrera.nombre : 'Desconocido'
         }));
 
-        res.json(result);
+        res.json({
+            total: clients.count,
+            page: parseInt(page),
+            totalPages: totalPages,
+            limit: parseInt(limit),
+            data: result
+        });
     } catch (error) {
         console.error('Error fetching clients:', error);
         res.status(500).json({ message: 'Internal server error' });
