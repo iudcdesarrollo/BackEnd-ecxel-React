@@ -2,7 +2,7 @@ const XLSX = require('xlsx');
 const path = require('path');
 const fs = require('fs');
 const moment = require('moment');
-const { Estado, Carrera, DatosPersonales } = require('../models/ModelDBWhatsappLedasCallCenter.js');
+const { Estado, Carrera, DatosPersonales, Servicio } = require('../models/ModelDBWhatsappLedasCallCenter.js');
 const reemplazos = require('../utils/remplazoCarreras.js');
 const replacePostgraduateDegrees = require('./procesarPregunta.js');
 const enviarMensajeHttpPost = require('./enviarMensajeHttpPost.js');
@@ -20,8 +20,17 @@ const excelDateToJSDate = (serial) => {
     return new Date(dateInfo.getTime() + time);
 };
 
-const processExcelFile = async (filePath) => {
+const processExcelFile = async (filePath, nameServicio) => {
     try {
+        console.log(`Nombre del servicio recibido: ${nameServicio}`);
+
+        let servicio = await Servicio.findOne({ where: { nombre: nameServicio } });
+        if (!servicio) {
+            servicio = await Servicio.create({ nombre: nameServicio });
+        }
+
+        console.log(`Servicio encontrado o creado: ${servicio.id}`);
+
         const workbook = XLSX.readFile(filePath);
         const sheetNameList = workbook.SheetNames;
         const sheet = workbook.Sheets[sheetNameList[0]];
@@ -53,15 +62,6 @@ const processExcelFile = async (filePath) => {
                     continue;
                 }
 
-                console.log('Datos de la fila:', {
-                    NOMBRE,
-                    APELLIDO,
-                    CORREO,
-                    TELEFONO,
-                    CARRERA_NOMBRE,
-                    FECHA_INGRESO_META
-                });
-
                 const postgraduateProcessed = await replacePostgraduateDegrees(CARRERA_NOMBRE, reemplazos);
 
                 let carrera = await Carrera.findOne({ where: { nombre: postgraduateProcessed } });
@@ -79,21 +79,18 @@ const processExcelFile = async (filePath) => {
                     apellidos: APELLIDO,
                     correo: CORREO,
                     telefono: telefonoValido,
-                    carrera: postgraduateProcessed,
-                    estado: 'SIN GESTIONAR',
-                    fecha_envio_what: null,
+                    carrera_id: carrera.id,
+                    estado_id: estado.id,
+                    servicio_id: servicio.id,
                     enviado: 0
                 };
 
                 console.log('Registro a buscar o crear:', record);
 
+                // Busca un registro existente por teléfono
                 const existingRecord = await DatosPersonales.findOne({
                     where: {
-                        nombres: record.nombres,
-                        apellidos: record.apellidos,
-                        telefono: record.telefono,
-                        carrera_id: carrera.id,
-                        estado_id: estado.id
+                        telefono: record.telefono
                     }
                 });
 
@@ -104,15 +101,15 @@ const processExcelFile = async (filePath) => {
                     console.log('Mensaje a enviar:', mensajeEnviaria);
 
                     const responseHttp = await enviarMensajeHttpPost(record.id, telefonoValido, `${NOMBRE} ${APELLIDO}`, postgraduateProcessed, mensajeEnviaria);
-                    console.log('Respuesta del envío de mensaje:', responseHttp);
+                    console.log(`mensaje server de jesus: ${responseHttp.message}`);
 
                     if (responseHttp.message === 'Mensaje enviado exitosamente') {
-                        record.fecha_envio_what = moment().format('YYYY-MM-DD HH:mm:ss');
+                        record.fecha_envio_wha = moment().format('YYYY-MM-DD HH:mm:ss');
                         record.enviado = 1;
 
                         if (existingRecord) {
                             await DatosPersonales.update({
-                                fecha_envio_wha: record.fecha_envio_what,
+                                fecha_envio_wha: record.fecha_envio_wha,
                                 enviado: true
                             }, {
                                 where: {
@@ -128,10 +125,11 @@ const processExcelFile = async (filePath) => {
                                 apellidos: record.apellidos,
                                 correo: record.correo,
                                 telefono: record.telefono,
-                                carrera_id: carrera.id,
-                                estado_id: estado.id,
+                                carrera_id: record.carrera_id,
+                                estado_id: record.estado_id,
+                                servicio_id: record.servicio_id,
                                 enviado: true,
-                                fecha_envio_wha: record.fecha_envio_what
+                                fecha_envio_wha: record.fecha_envio_wha
                             });
                             console.log('Nuevo registro creado:', record);
                         }

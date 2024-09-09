@@ -3,13 +3,15 @@ const fs = require('fs');
 const path = require('path');
 const mysql = require('mysql2/promise');
 const obtenerFechaActual = require('../../utils/obtenerFechaActual');
+const uploadFileToS3 = require('../../services/aws/s3/uploadS3');
+const deletedFile = require('../../utils/deletedFiles');
 
 const backupDB = async () => {
     try {
         const dateStr = obtenerFechaActual().replace(/\s+/g, '-').replace(/:/g, '-');
         const backupFileName = `backup-${dateStr}.sql`;
 
-        const backupFilePath = path.join(__dirname, backupFileName);
+        const backupFilePath = path.join(__dirname, '../../public/backups/DB', backupFileName);
 
         const backupDir = path.dirname(backupFilePath);
         if (!fs.existsSync(backupDir)) {
@@ -21,9 +23,11 @@ const backupDB = async () => {
         const dbPassword = process.env.DB_PASSWORD;
         const dbName = process.env.DB_NAME;
         const host = process.env.DB_HOST;
+        const port = process.env.DB_PORT;
 
         const connection = await mysql.createConnection({
-            host,
+            host: host,
+            port: port,
             user: dbUser,
             password: dbPassword,
             database: dbName,
@@ -59,20 +63,15 @@ const backupDB = async () => {
 
         await connection.end();
 
-        return backupFilePath;
+        const pathAwsBackup = await uploadFileToS3(backupFilePath);
+
+        await deletedFile(backupFilePath);
+
+        return pathAwsBackup;
     } catch (error) {
         console.error(`Error al realizar el backup: ${error.message}`);
         throw error;
     }
 };
 
-const main = async () => {
-    try {
-        const filePath = await backupDB();
-        console.log(`${filePath}`);
-    } catch (error) {
-        console.error(`Error al realizar el backup: ${error.message}`);
-    }
-};
-
-main();
+module.exports = backupDB;

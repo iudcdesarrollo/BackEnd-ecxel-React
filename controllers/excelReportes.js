@@ -1,46 +1,54 @@
-const { Estado, Carrera, DatosPersonales } = require('../models/ModelDBWhatsappLedasCallCenter.js');
+const { Estado, Carrera, DatosPersonales, Servicio } = require('../models/ModelDBWhatsappLedasCallCenter.js');
 const { Op } = require('sequelize');
 const ExcelJS = require('exceljs');
 
 /**
- * The excelReports function generates an Excel report based on specified query parameters and sends it
- * as a downloadable file in response.
- * @param req - `req` is the request object which contains information about the HTTP request made by
- * the client to the server. It includes data such as request headers, query parameters, body content,
- * and more. In the provided code snippet, `req` is used to extract query parameters like `startDate`,
- * `endDate`
- * @param res - The `res` parameter in the `excelReports` function is the response object in
- * Express.js. It is used to send a response back to the client making the request. In this function,
- * the response object is used to send the generated Excel file as a downloadable attachment
- * (`ReporteClientes.xlsx`)
- * @returns The `excelReports` function is returning an Excel spreadsheet file containing data based on
- * the query parameters `startDate`, `endDate`, `tipo`, and `telefono` from the request. The function
- * first checks if `startDate` and `endDate` are provided, and if not, it returns a 400 status with a
- * message indicating that both dates are required.
+ * La función excelReports genera un reporte en Excel basado en los parámetros de consulta especificados
+ * y lo envía como un archivo descargable en la respuesta.
+ * @param req - `req` es el objeto de solicitud que contiene información sobre la solicitud HTTP realizada por
+ * el cliente al servidor. Incluye datos como encabezados de solicitud, parámetros de consulta, contenido del cuerpo,
+ * y más. En el fragmento de código proporcionado, `req` se usa para extraer parámetros de consulta como `startDate`,
+ * `endDate`, `telefono`, `servicioID` y `servicioNombre`.
+ * @param res - El parámetro `res` en la función `excelReports` es el objeto de respuesta en
+ * Express.js. Se utiliza para enviar una respuesta de vuelta al cliente que realiza la solicitud. En esta función,
+ * el objeto de respuesta se usa para enviar el archivo Excel generado como un archivo adjunto descargable
+ * (`ReporteClientes.xlsx`).
+ * @returns La función `excelReports` devuelve un archivo de hoja de cálculo de Excel que contiene datos basados en
+ * los parámetros de consulta `startDate`, `endDate`, `telefono`, `servicioID` y `servicioNombre` de la solicitud. La función
+ * primero verifica si se proporcionan `startDate` y `endDate`, y si no, devuelve un estado 400 con un mensaje
+ * indicando que se requieren ambas fechas.
  */
 const excelReports = async (req, res) => {
     try {
-        let { startDate, endDate, tipo, telefono } = req.query;
+        let { startDate, endDate, telefono, servicioNombre } = req.query;
 
-        console.log(`fecha de inicio de la solicitud ${startDate}, fecha fin de la solicitud: ${endDate}`);
+        console.log(`esto es lo que se manda por la query para asi mismo ver: ${startDate}, ${endDate}, ${telefono}, ${servicioNombre}`)
 
         if (!startDate || !endDate) {
             return res.status(400).json({ message: 'Por favor, proporciona ambas fechas: startDate y endDate.' });
         }
 
-        // Ajusta la fecha de fin a la última hora del día en UTC
-        let endDateTime = new Date(endDate);
+        const startDateTime = new Date(startDate);
+        const endDateTime = new Date(endDate);
         endDateTime.setUTCHours(23, 59, 59, 999);
-        endDate = endDateTime.toISOString();
 
         const whereConditions = {
             fecha_envio_wha: {
-                [Op.between]: [new Date(startDate), new Date(endDate)],
+                [Op.between]: [startDateTime, endDateTime],
             },
         };
 
         if (telefono) {
             whereConditions.telefono = telefono;
+        }
+
+        if (servicioNombre) {
+            const servicio = await Servicio.findOne({ where: { nombre: servicioNombre } });
+            if (servicio) {
+                whereConditions.servicio_id = servicio.id;
+            } else {
+                return res.status(400).json({ message: 'Nombre de servicio no encontrado.' });
+            }
         }
 
         const clients = await DatosPersonales.findAll({
@@ -54,6 +62,10 @@ const excelReports = async (req, res) => {
                     model: Carrera,
                     attributes: ['nombre'],
                 },
+                {
+                    model: Servicio,
+                    attributes: ['nombre'],
+                }
             ],
             attributes: [
                 'nombres',
@@ -62,6 +74,7 @@ const excelReports = async (req, res) => {
                 'telefono',
                 'enviado',
                 'fecha_envio_wha',
+                'fecha_ingreso_meta'
             ],
         });
 
@@ -80,20 +93,26 @@ const excelReports = async (req, res) => {
                 { header: 'Teléfono', key: 'telefono', width: 15 },
                 { header: 'Enviado', key: 'enviado', width: 10 },
                 { header: 'Fecha Envio WhatsApp', key: 'fecha_envio_wha', width: 20 },
+                { header: 'Fecha Ingreso Meta', key: 'fecha_ingreso_meta', width: 20 },
                 { header: 'Estado', key: 'estado', width: 20 },
                 { header: 'Carrera', key: 'carrera', width: 20 },
+                { header: 'Servicio', key: 'servicio', width: 20 },
             ];
 
             data.forEach(client => {
+                const fechaEnvioWha = client.fecha_envio_wha ? new Date(client.fecha_envio_wha).toISOString().slice(0, 10) : 'No disponible';
+                const fechaIngresoMeta = client.fecha_ingreso_meta ? new Date(client.fecha_ingreso_meta).toISOString().slice(0, 10) : 'No disponible';
                 sheet.addRow({
                     nombres: client.nombres,
                     apellidos: client.apellidos,
                     correo: client.correo,
                     telefono: client.telefono,
                     enviado: client.enviado ? 'Sí' : 'No',
-                    fecha_envio_wha: client.fecha_envio_wha.toISOString().slice(0, 10),
+                    fecha_envio_wha: fechaEnvioWha,
+                    fecha_ingreso_meta: fechaIngresoMeta,
                     estado: client.Estado.nombre,
                     carrera: client.Carrera.nombre,
+                    servicio: client.Servicio.nombre,
                 });
             });
         };

@@ -20,6 +20,9 @@ const deletedFile = require('../utils/deletedFiles.js');
  * condiciones.
  */
 const UploadExcelFiles = async (req, res) => {
+    
+    const nameServicio = req.body.nameServicio;
+
     if (!req.file) {
         return res.status(400).send('No se ha subido ningún archivo.');
     }
@@ -40,9 +43,9 @@ const UploadExcelFiles = async (req, res) => {
         }
 
         try {
-            const jsonFilePath = await processExcelFile(newFilePath);
+            const jsonFilePath = await processExcelFile(newFilePath,nameServicio);
 
-            await insertDataFromJson(jsonFilePath);
+            //await insertDataFromJson(jsonFilePath);
 
             await deletedFile(jsonFilePath);
 

@@ -40,6 +40,21 @@ const Carrera = sequelize.define('Carrera', {
   timestamps: false,
 });
 
+const Servicio = sequelize.define('Servicio', {
+  id: {
+    type: DataTypes.UUID,
+    defaultValue: Sequelize.UUIDV4,
+    primaryKey: true,
+  },
+  nombre: {
+    type: DataTypes.STRING,
+    allowNull: false,
+  },
+}, {
+  tableName: 'servicios',
+  timestamps: false,
+});
+
 const DatosPersonales = sequelize.define('DatosPersonales', {
   id: {
     type: DataTypes.STRING,
@@ -47,8 +62,8 @@ const DatosPersonales = sequelize.define('DatosPersonales', {
   },
   fecha_ingreso_meta: {
     type: DataTypes.DATE,
-    allowNull: true, // Permitir null
-    defaultValue: null, // Valor por defecto null
+    allowNull: true,
+    defaultValue: null,
   },
   nombres: {
     type: DataTypes.STRING,
@@ -82,6 +97,14 @@ const DatosPersonales = sequelize.define('DatosPersonales', {
       key: 'id',
     },
   },
+  servicio_id: {
+    type: DataTypes.UUID,
+    allowNull: false,
+    references: {
+      model: Servicio,
+      key: 'id',
+    },
+  },
   enviado: {
     type: DataTypes.BOOLEAN,
     allowNull: false,
@@ -97,12 +120,15 @@ const DatosPersonales = sequelize.define('DatosPersonales', {
 
 DatosPersonales.belongsTo(Carrera, { foreignKey: 'carrera_id' });
 DatosPersonales.belongsTo(Estado, { foreignKey: 'estado_id' });
+DatosPersonales.belongsTo(Servicio, { foreignKey: 'servicio_id' });
 
 Carrera.hasMany(DatosPersonales, { foreignKey: 'carrera_id' });
 Estado.hasMany(DatosPersonales, { foreignKey: 'estado_id' });
+Servicio.hasMany(DatosPersonales, { foreignKey: 'servicio_id' });
 
 module.exports = {
   Estado,
   Carrera,
+  Servicio,
   DatosPersonales,
 };
