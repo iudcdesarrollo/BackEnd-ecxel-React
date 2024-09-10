@@ -11,8 +11,13 @@ const reemplazos = {
     "PRE-GRADOS PSICOLOGÍA IUDC FDS V2": "Psicologia",
     "PRE-GRADOS DERECHO V1-2024": "Derecho",
     "PRE-GRADOS DERECHO FDS-V2": "Derecho",
+    "PRE-GRADOS PSICOLOGÍA IUDC 2024-IA":"Psicologia",
+    "PRE-GRADOS MEDICINA VET Y ZOO 2024-IA":"Medicina Veterinaria y Zootecnia",
+    "PRE-GRADOS ARQUITECTURA IUDC 2024 IA":"Arquitectura",
+    "IUDC-PREGRADO IUDC DERECHO 2024 - IA Conjunto de anuncios":"Derecho",
     // Pregrados Generales...
     "PRE-GRADOS GENERAL-V2": "Pregrado",
+    "IUDC-PREGRADO IUDC DERECHO 2024 - IA Conjunto de anuncios": "Pregrado",
     "PRE-GRADOS GENERAL": "Pregrado",
     "PRE-GRADOS DERECHO 2024": "Derecho",
     "PRE-GRADOS MEDICINA VET Y ZOO 2024": "Medicina Veterinaria y Zootecnia",
