@@ -1,11 +1,5 @@
 const { DataTypes, Sequelize } = require('sequelize');
 
-/**
- * Define el modelo User.
- * @param {Sequelize} sequelize - Instancia de Sequelize.
- * @returns {Model} - Modelo de Usuario.
- */
-
 module.exports = (sequelize) => {
   const User = sequelize.define('User', {
     id: {

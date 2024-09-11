@@ -5,18 +5,16 @@ module.exports = (sequelize) => {
     user_id: {
       type: DataTypes.UUID,
       references: {
-        model: 'User',
-        key: 'id',
-      },
-      primaryKey: true,
+        model: 'users',
+        key: 'id'
+      }
     },
     role_id: {
       type: DataTypes.UUID,
       references: {
-        model: 'Role',
-        key: 'id',
-      },
-      primaryKey: true,
+        model: 'roles',
+        key: 'id'
+      }
     },
   }, {
     tableName: 'user_roles',
