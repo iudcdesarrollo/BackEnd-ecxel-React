@@ -19,6 +19,9 @@ preventionOfDenialOfService(app);
 app.use(authMiddleware);
 
 const uploadRoutes = require('./routes/uploadsRoutes');
+const authRoutes = require('./auth/routes/auth.routes');
+
 app.use('/api', uploadRoutes);
+app.use('/api', authRoutes);
 
 module.exports = app;
