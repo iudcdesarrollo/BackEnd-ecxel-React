@@ -39,9 +39,9 @@ const processExcelFile = async (filePath, nameServicio) => {
         const fechaPredeterminada = '2000-01-01 00:00:00';
         const processedData = [];
 
-        let estado = await Estado.findOne({ where: { nombre: 'sin gestionar' } });
+        let estado = await Estado.findOne({ where: { nombre: 'no_gestionado' } });
         if (!estado) {
-            estado = await Estado.create({ nombre: 'sin gestionar' });
+            estado = await Estado.create({ nombre: 'no_gestionado' });
         }
 
         // Usamos un Set para asegurarnos de que solo se envíe un mensaje por número de teléfono

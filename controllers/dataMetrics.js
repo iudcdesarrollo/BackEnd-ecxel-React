@@ -32,7 +32,7 @@ const getPersonsStatusCounts = async (req, res) => {
       return res.status(404).json({ error: 'Servicio no encontrado' });
     }
 
-    const estadoInteresado = await Estado.findOne({ where: { nombre: 'Interesado' } });
+    const estadoInteresado = await Estado.findOne({ where: { nombre: 'Inscrito' } });
     const estadoGestionado = await Estado.findOne({ where: { nombre: 'Gestionado' } });
 
     const totalPersonas = await DatosPersonales.count({

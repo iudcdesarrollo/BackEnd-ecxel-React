@@ -16,7 +16,7 @@ app.use(cors(corsOptions));
 app.use(express.json());
 //app.use(codeInjectionPrevention);
 preventionOfDenialOfService(app);
-app.use(authMiddleware);
+//app.use(authMiddleware);
 
 const uploadRoutes = require('./routes/uploadsRoutes');
 app.use('/api', uploadRoutes);

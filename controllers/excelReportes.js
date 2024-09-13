@@ -79,8 +79,8 @@ const excelReports = async (req, res) => {
         });
 
         const gestionadoClients = clients.filter(client => client.Estado && client.Estado.nombre.toLowerCase() === 'gestionado');
-        const sinGestionarClients = clients.filter(client => client.Estado && client.Estado.nombre.toLowerCase() === 'sin gestionar');
-        const interesadosClients = clients.filter(client => client.Estado && client.Estado.nombre.toLowerCase() === 'interesado');
+        const sinGestionarClients = clients.filter(client => client.Estado && client.Estado.nombre.toLowerCase() === 'no_gestionado');
+        const interesadosClients = clients.filter(client => client.Estado && client.Estado.nombre.toLowerCase() === 'inscrito');
 
         const workbook = new ExcelJS.Workbook();
 
@@ -117,9 +117,9 @@ const excelReports = async (req, res) => {
             });
         };
 
-        addSheetWithData('Gestionado', gestionadoClients);
-        addSheetWithData('Sin Gestionar', sinGestionarClients);
-        addSheetWithData('Interesados', interesadosClients);
+        addSheetWithData('GESTIONADOS', gestionadoClients);
+        addSheetWithData('NO_GESTIONADOS', sinGestionarClients);
+        addSheetWithData('INSCRITOS', interesadosClients);
 
         res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
         res.setHeader('Content-Disposition', 'attachment; filename=ReporteClientes.xlsx');

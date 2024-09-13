@@ -33,8 +33,8 @@ const getConsultas = async (req, res) => {
 
         const estadoIds = {
             'gestionado': '5a158922-66e5-11ef-8b15-a2aa77fc013e',
-            'no-gestionado': '5a158744-66e5-11ef-8b15-a2aa77fc013e',
-            'interesado': '5a1589d4-66e5-11ef-8b15-a2aa77fc013e'
+            'no-gestionado': 'b3a2c5d5-4f7b-4e8d-89a7-9f3c0e2d6d60',
+            'interesado': 'b3a2c5d4-4f7b-4e8d-89a7-9f3c0e2d6d59'
         };
 
         if (id) {

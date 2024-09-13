@@ -35,11 +35,11 @@ const createCustomer = async (req, res) => {
             console.log('Carrera creada:', carrera.id);
         }
 
-        let estado = await Estado.findOne({ where: { nombre: 'SIN GESTIONAR' } });
+        let estado = await Estado.findOne({ where: { nombre: 'NO_GESTIONADO' } });
         if (!estado) {
             estado = await Estado.create({
                 id: uuidv4(),
-                nombre: 'SIN GESTIONAR'
+                nombre: 'NO_GESTIONADO'
             });
             console.log('Estado creado:', estado.id);
         }
