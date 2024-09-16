@@ -44,7 +44,7 @@ const updateClientStatus = async (req, res) => {
         }
 
         if (cliente.estado_id === estadoRecord.id) {
-            return res.status(400).json({ message: `El cliente con ID ${id} ya tiene el estado ${estado}` });
+            return res.status(202).json({ message: `El cliente con ID ${id} ya tiene el estado ${estado}` });
         }
 
         await DatosPersonales.update(
