@@ -67,7 +67,10 @@ const excelReports = async (req, res) => {
 
         clients = clients.filter(client => !bannedNumbers.includes(client.telefono));
 
-        const gestionadoClients = clients.filter(client => client.Estado && client.Estado.nombre.toLowerCase() === 'gestionado');
+        const gestionadoClients = clients.filter(client => {
+            const estado = client.Estado && client.Estado.nombre.toLowerCase();
+            return ['gestionado', 'prioridad_baja', 'prioridad_media', 'prioridad_alta'].includes(estado);
+        });
         const sinGestionarClients = clients.filter(client => client.Estado && client.Estado.nombre.toLowerCase() === 'no_gestionado');
         const interesadosClients = clients.filter(client => client.Estado && client.Estado.nombre.toLowerCase() === 'inscrito');
 
@@ -106,6 +109,7 @@ const excelReports = async (req, res) => {
             });
         };
 
+        // Llamar a la función para generar las hojas
         addSheetWithData('GESTIONADOS', gestionadoClients);
         addSheetWithData('NO_GESTIONADOS', sinGestionarClients);
         addSheetWithData('INSCRITOS', interesadosClients);

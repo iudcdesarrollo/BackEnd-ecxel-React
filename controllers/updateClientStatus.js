@@ -22,7 +22,8 @@ const updateClientStatus = async (req, res) => {
         return res.status(400).json({ message: 'ID and estado are required' });
     }
 
-    const validEstados = ['NO_GESTIONADO', 'GESTIONADO','INSCRITO','NO_INTERESADO','PRIORIDAD_BAJA','PRIORIDAD_MEDIA','PRIORIDAD_ALTA'];
+    const validEstados = ['NO_GESTIONADO', 'GESTIONADO','INSCRITO','NO_INTERESADO','PRIORIDAD_BAJA','PRIORIDAD_MEDIA','PRIORIDAD_ALTA','INTERESADO','MENSAJE_ACEPTADO','MENSAJE_ENVIADO','MENSAJE_RECHAZADO'
+    ];
 
     if (!validEstados.includes(estado)) {
         return res.status(400).json({ message: 'Invalid estado provided' });
