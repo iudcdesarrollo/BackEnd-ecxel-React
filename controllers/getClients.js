@@ -1,4 +1,5 @@
 const { Estado, Carrera, DatosPersonales, Servicio } = require('../models/ModelDBWhatsappLedasCallCenter.js');
+const bannedNumbers = require('../utils/bannedNumbers.js'); // Numeros vetados de cualquier operacion...
 
 /**
  * The function `getclients` is an asynchronous function in JavaScript that retrieves clients based on
@@ -41,7 +42,7 @@ const getclients = async (req, res) => {
       where: { servicio_id: service.id }
     });
 
-    const clients = await DatosPersonales.findAll({
+    let clients = await DatosPersonales.findAll({
       where: { servicio_id: service.id },
       include: [
         {
@@ -65,6 +66,8 @@ const getclients = async (req, res) => {
       offset: offset,
       order: [['fecha_envio_wha', 'DESC']]
     });
+
+    clients = clients.filter(client => !bannedNumbers.includes(client.telefono));
 
     res.json({
       total: totalClients,

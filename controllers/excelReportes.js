@@ -1,28 +1,24 @@
 const { Estado, Carrera, DatosPersonales, Servicio } = require('../models/ModelDBWhatsappLedasCallCenter.js');
 const { Op } = require('sequelize');
 const ExcelJS = require('exceljs');
+const bannedNumbers = require('../utils/bannedNumbers.js');
 
 /**
- * La función excelReports genera un reporte en Excel basado en los parámetros de consulta especificados
- * y lo envía como un archivo descargable en la respuesta.
- * @param req - `req` es el objeto de solicitud que contiene información sobre la solicitud HTTP realizada por
- * el cliente al servidor. Incluye datos como encabezados de solicitud, parámetros de consulta, contenido del cuerpo,
- * y más. En el fragmento de código proporcionado, `req` se usa para extraer parámetros de consulta como `startDate`,
- * `endDate`, `telefono`, `servicioID` y `servicioNombre`.
- * @param res - El parámetro `res` en la función `excelReports` es el objeto de respuesta en
- * Express.js. Se utiliza para enviar una respuesta de vuelta al cliente que realiza la solicitud. En esta función,
- * el objeto de respuesta se usa para enviar el archivo Excel generado como un archivo adjunto descargable
- * (`ReporteClientes.xlsx`).
- * @returns La función `excelReports` devuelve un archivo de hoja de cálculo de Excel que contiene datos basados en
- * los parámetros de consulta `startDate`, `endDate`, `telefono`, `servicioID` y `servicioNombre` de la solicitud. La función
- * primero verifica si se proporcionan `startDate` y `endDate`, y si no, devuelve un estado 400 con un mensaje
- * indicando que se requieren ambas fechas.
+ * The excelReports function generates an Excel report based on specified query parameters, filtering
+ * out banned phone numbers and categorizing clients based on their status.
+ * @param req - The function `excelReports` is an asynchronous function that generates an Excel report
+ * based on the provided request parameters. Here's a breakdown of the function:
+ * @param res - The `res` parameter in the `excelReports` function is the response object in
+ * Express.js. It is used to send a response back to the client making the request. In this function,
+ * the response object is used to send JSON responses in case of errors or to send the Excel file as a
+ * @returns The `excelReports` function is returning an Excel file containing three sheets:
+ * "GESTIONADOS", "NO_GESTIONADOS", and "INSCRITOS". Each sheet contains data of clients filtered based
+ * on certain conditions, such as excluding clients with banned phone numbers and categorizing clients
+ * based on their status (gestionado, no_gestionado, inscrito). The Excel file is
  */
 const excelReports = async (req, res) => {
     try {
         let { startDate, endDate, telefono, servicioNombre } = req.query;
-
-        console.log(`esto es lo que se manda por la query para asi mismo ver: ${startDate}, ${endDate}, ${telefono}, ${servicioNombre}`)
 
         if (!startDate || !endDate) {
             return res.status(400).json({ message: 'Por favor, proporciona ambas fechas: startDate y endDate.' });
@@ -51,21 +47,12 @@ const excelReports = async (req, res) => {
             }
         }
 
-        const clients = await DatosPersonales.findAll({
+        let clients = await DatosPersonales.findAll({
             where: whereConditions,
             include: [
-                {
-                    model: Estado,
-                    attributes: ['nombre'],
-                },
-                {
-                    model: Carrera,
-                    attributes: ['nombre'],
-                },
-                {
-                    model: Servicio,
-                    attributes: ['nombre'],
-                }
+                { model: Estado, attributes: ['nombre'] },
+                { model: Carrera, attributes: ['nombre'] },
+                { model: Servicio, attributes: ['nombre'] }
             ],
             attributes: [
                 'nombres',
@@ -77,6 +64,8 @@ const excelReports = async (req, res) => {
                 'fecha_ingreso_meta'
             ],
         });
+
+        clients = clients.filter(client => !bannedNumbers.includes(client.telefono));
 
         const gestionadoClients = clients.filter(client => client.Estado && client.Estado.nombre.toLowerCase() === 'gestionado');
         const sinGestionarClients = clients.filter(client => client.Estado && client.Estado.nombre.toLowerCase() === 'no_gestionado');
