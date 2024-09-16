@@ -2,28 +2,20 @@ const { DatosPersonales, Carrera, Estado, Servicio } = require('../models/ModelD
 const { v4: uuidv4 } = require('uuid');
 
 /**
- * The function `createCustomer` is an asynchronous function that creates a new customer record with
- * default values if the customer does not already exist based on the provided phone number, and
- * updates the existing customer's WhatsApp send date if found.
- * @param req - The `req` parameter in the `createCustomer` function stands for the request object. It
- * contains information about the HTTP request that triggered the function, including headers, body,
- * parameters, and more. In this case, the function is expecting a phone number (`telefono`) to be
- * present in the request
- * @param res - The `res` parameter in the `createCustomer` function is the response object that will
- * be used to send a response back to the client making the request. It is typically used to send HTTP
- * responses with status codes, headers, and data back to the client. In the provided code snippet, `
- * @returns The function `createCustomer` is returning either a success response with the customer ID
- * (status code 200 or 201) if a new customer is created or an existing customer is updated, or an
- * error response (status code 400 or 500) if there are validation errors or an internal server error
- * occurs.
+ * La función `createCustomer` crea un nuevo registro de cliente si no existe basándose en el número de teléfono y el nombre del servicio proporcionados.
+ * Si ya existe un cliente con el mismo número de teléfono, actualiza la fecha de envío de WhatsApp si no está establecida.
+ * 
+ * @param req - Objeto de solicitud que contiene el número de teléfono (`telefono`) y el nombre del servicio (`nameService`) en el cuerpo de la solicitud.
+ * @param res - Objeto de respuesta que se utiliza para enviar una respuesta de vuelta al cliente.
+ * 
+ * @returns Un ID de cliente si se creó o actualizó, o un mensaje de error si ocurrió algún problema.
  */
-
 const createCustomer = async (req, res) => {
     try {
-        const { telefono } = req.body;
+        const { telefono, nameService } = req.body;
 
-        if (!telefono) {
-            return res.status(400).json({ message: 'El número de teléfono es requerido' });
+        if (!telefono || !nameService) {
+            return res.status(400).json({ message: 'El número de teléfono y el nombre del servicio son requeridos' });
         }
 
         let carrera = await Carrera.findOne({ where: { nombre: 'CARRERA NO IDENTIFICADA' } });
@@ -44,11 +36,12 @@ const createCustomer = async (req, res) => {
             console.log('Estado creado:', estado.id);
         }
 
-        let servicio = await Servicio.findOne({ where: { nombre: 'SERVICIO NO IDENTIFICADO' } });
+        // Buscar o crear el servicio basado en nameService proporcionado
+        let servicio = await Servicio.findOne({ where: { nombre: nameService } });
         if (!servicio) {
             servicio = await Servicio.create({
                 id: uuidv4(),
-                nombre: 'SERVICIO NO IDENTIFICADO'
+                nombre: nameService
             });
             console.log('Servicio creado:', servicio.id);
         }
@@ -61,12 +54,13 @@ const createCustomer = async (req, res) => {
             telefono: telefono,
             carrera_id: carrera.id,
             estado_id: estado.id,
-            servicio_id: servicio.id,
+            servicio_id: servicio.id,  // Aquí se usa el servicio proporcionado
             enviado: false,
             fecha_envio_wha: new Date(),
             fecha_ingreso_meta: null,
         };
 
+        // Comprobar si el cliente ya existe basado en el número de teléfono
         let existingCustomer = await DatosPersonales.findOne({ where: { telefono: telefono } });
 
         if (existingCustomer) {
@@ -80,6 +74,7 @@ const createCustomer = async (req, res) => {
             return res.status(200).json({ id: existingCustomer.id });
         }
 
+        // Crear un nuevo cliente si no existe
         const newCustomer = await DatosPersonales.create(defaultValues);
 
         console.log('Nuevo cliente creado:', newCustomer.id);
