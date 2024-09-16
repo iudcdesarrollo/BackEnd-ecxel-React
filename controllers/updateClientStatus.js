@@ -22,7 +22,10 @@ const updateClientStatus = async (req, res) => {
         return res.status(400).json({ message: 'ID and estado are required' });
     }
 
-    const validEstados = ['NO_GESTIONADO', 'GESTIONADO','INSCRITO','NO_INTERESADO','PRIORIDAD_BAJA','PRIORIDAD_MEDIA','PRIORIDAD_ALTA','INTERESADO','MENSAJE_ACEPTADO','MENSAJE_ENVIADO','MENSAJE_RECHAZADO'
+    const validEstados = [
+        'NO_GESTIONADO', 'GESTIONADO', 'INSCRITO', 'NO_INTERESADO', 
+        'PRIORIDAD_BAJA', 'PRIORIDAD_MEDIA', 'PRIORIDAD_ALTA', 
+        'INTERESADO', 'MENSAJE_ACEPTADO', 'MENSAJE_ENVIADO', 'MENSAJE_RECHAZADO'
     ];
 
     if (!validEstados.includes(estado)) {
@@ -35,18 +38,22 @@ const updateClientStatus = async (req, res) => {
             return res.status(404).json({ message: 'Estado not found' });
         }
 
-        const [updated] = await DatosPersonales.update(
+        const cliente = await DatosPersonales.findOne({ where: { id } });
+        if (!cliente) {
+            return res.status(404).json({ message: 'Client not found' });
+        }
+
+        if (cliente.estado_id === estadoRecord.id) {
+            return res.status(400).json({ message: `El cliente con ID ${id} ya tiene el estado ${estado}` });
+        }
+
+        await DatosPersonales.update(
             { estado_id: estadoRecord.id },
             { where: { id } }
         );
 
-        if (updated) {
-            console.log('Client status updated successfully');
-            res.status(200).json({ message: 'Client status updated successfully' });
-        } else {
-            console.log('Client not found');
-            res.status(404).json({ message: 'Client not found' });
-        }
+        console.log('Client status updated successfully');
+        res.status(200).json({ message: 'Client status updated successfully' });
     } catch (error) {
         console.error('Error updating client status:', error);
         res.status(500).json({ message: 'Error updating client status' });
