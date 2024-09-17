@@ -138,9 +138,10 @@ const processExcelFile = async (filePath, nameServicio) => {
 
         for (const usuario of usuariosAEnviar) {
             try {
-                const mensajeEnviaria = await mensajeAEnviar(usuario.nombres, usuario.apellidos, await replacePostgraduateDegrees(usuario.carrera_id, reemplazos));
+                const carrera = await Carrera.findOne({ where: { id: usuario.carrera_id } });
+                const mensajeEnviaria = await mensajeAEnviar(usuario.nombres, usuario.apellidos, await replacePostgraduateDegrees(carrera, reemplazos));
 
-                const responseHttp = await enviarMensajeHttpPost(usuario.id, usuario.telefono, `${usuario.nombres} ${usuario.apellidos}`, usuario.carrera_id, mensajeEnviaria);
+                const responseHttp = await enviarMensajeHttpPost(usuario.id, usuario.telefono, `${usuario.nombres} ${usuario.apellidos}`, carrera, mensajeEnviaria);
                 console.log(`mensaje server de jesus: ${responseHttp.message}`);
 
                 if (responseHttp.message === 'Mensaje enviado y guardado correctamente') {

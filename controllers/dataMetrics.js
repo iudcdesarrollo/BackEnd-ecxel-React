@@ -1,5 +1,6 @@
 const { DatosPersonales, Estado, Servicio } = require('../models/ModelDBWhatsappLedasCallCenter.js');
 const { Op } = require('sequelize');
+const bannedNumbers = require('../resources/bannedNumbers.js');
 
 const getLast30Days = () => {
   const now = new Date();
@@ -13,13 +14,6 @@ const getLast7Days = () => {
 
 const getPersonsStatusCounts = async (req, res) => {
   const { servicioNombre } = req.query;
-  const excludedPhones = [
-    '573136368783',
-    '573142332746',
-    '573137631781',
-    '573118594657',
-    '573224436731'
-  ];
 
   try {
     const now = new Date();
@@ -38,7 +32,7 @@ const getPersonsStatusCounts = async (req, res) => {
     const totalPersonas = await DatosPersonales.count({
       where: {
         servicio_id: servicio.id,
-        telefono: { [Op.notIn]: excludedPhones }
+        telefono: { [Op.notIn]: bannedNumbers }
       }
     });
 
@@ -46,7 +40,7 @@ const getPersonsStatusCounts = async (req, res) => {
       where: {
         estado_id: estadoInteresado.id,
         servicio_id: servicio.id,
-        telefono: { [Op.notIn]: excludedPhones }
+        telefono: { [Op.notIn]: bannedNumbers }
       }
     });
 
@@ -54,7 +48,7 @@ const getPersonsStatusCounts = async (req, res) => {
       where: {
         estado_id: estadoGestionado.id,
         servicio_id: servicio.id,
-        telefono: { [Op.notIn]: excludedPhones }
+        telefono: { [Op.notIn]: bannedNumbers }
       }
     });
 
@@ -62,7 +56,7 @@ const getPersonsStatusCounts = async (req, res) => {
       where: {
         estado_id: { [Op.ne]: estadoGestionado.id },
         servicio_id: servicio.id,
-        telefono: { [Op.notIn]: excludedPhones }
+        telefono: { [Op.notIn]: bannedNumbers }
       }
     });
 
@@ -70,7 +64,7 @@ const getPersonsStatusCounts = async (req, res) => {
       where: {
         fecha_envio_wha: { [Op.between]: [last30Days, now] },
         servicio_id: servicio.id,
-        telefono: { [Op.notIn]: excludedPhones }
+        telefono: { [Op.notIn]: bannedNumbers }
       }
     });
 
@@ -79,7 +73,7 @@ const getPersonsStatusCounts = async (req, res) => {
         estado_id: estadoInteresado.id,
         fecha_envio_wha: { [Op.between]: [last30Days, now] },
         servicio_id: servicio.id,
-        telefono: { [Op.notIn]: excludedPhones }
+        telefono: { [Op.notIn]: bannedNumbers }
       }
     });
 
@@ -88,7 +82,7 @@ const getPersonsStatusCounts = async (req, res) => {
         estado_id: estadoGestionado.id,
         fecha_envio_wha: { [Op.between]: [last30Days, now] },
         servicio_id: servicio.id,
-        telefono: { [Op.notIn]: excludedPhones }
+        telefono: { [Op.notIn]: bannedNumbers }
       }
     });
 
@@ -97,7 +91,7 @@ const getPersonsStatusCounts = async (req, res) => {
         estado_id: { [Op.ne]: estadoGestionado.id },
         fecha_envio_wha: { [Op.between]: [last30Days, now] },
         servicio_id: servicio.id,
-        telefono: { [Op.notIn]: excludedPhones }
+        telefono: { [Op.notIn]: bannedNumbers }
       }
     });
 
@@ -105,7 +99,7 @@ const getPersonsStatusCounts = async (req, res) => {
       where: {
         fecha_envio_wha: { [Op.between]: [last7Days, now] },
         servicio_id: servicio.id,
-        telefono: { [Op.notIn]: excludedPhones }
+        telefono: { [Op.notIn]: bannedNumbers }
       }
     });
 
@@ -114,7 +108,7 @@ const getPersonsStatusCounts = async (req, res) => {
         estado_id: estadoInteresado.id,
         fecha_envio_wha: { [Op.between]: [last7Days, now] },
         servicio_id: servicio.id,
-        telefono: { [Op.notIn]: excludedPhones }
+        telefono: { [Op.notIn]: bannedNumbers }
       }
     });
 
@@ -123,7 +117,7 @@ const getPersonsStatusCounts = async (req, res) => {
         estado_id: estadoGestionado.id,
         fecha_envio_wha: { [Op.between]: [last7Days, now] },
         servicio_id: servicio.id,
-        telefono: { [Op.notIn]: excludedPhones }
+        telefono: { [Op.notIn]: bannedNumbers }
       }
     });
 
@@ -132,7 +126,7 @@ const getPersonsStatusCounts = async (req, res) => {
         estado_id: { [Op.ne]: estadoGestionado.id },
         fecha_envio_wha: { [Op.between]: [last7Days, now] },
         servicio_id: servicio.id,
-        telefono: { [Op.notIn]: excludedPhones }
+        telefono: { [Op.notIn]: bannedNumbers }
       }
     });
 
