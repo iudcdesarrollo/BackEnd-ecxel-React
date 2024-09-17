@@ -10,16 +10,8 @@ const mensajeAEnviar = require('./mensajePersonalisado.js');
 const validacionNumber = require('../utils/validationNumbers.js');
 const { v4: uuidv4 } = require('uuid');
 const deletedFile = require('../utils/deletedFiles.js');
-const getEstadoIdByName = require('./getIdEstados.js');
-
-const excelDateToJSDate = (serial) => {
-    const utc_days = Math.floor(serial - 25569);
-    const utc_value = utc_days * 86400;
-    const dateInfo = new Date(utc_value * 1000);
-    const fractionalDay = serial - Math.floor(serial) + 0.0000001;
-    const time = 86400000 * fractionalDay;
-    return new Date(dateInfo.getTime() + time);
-};
+const getEstadoIdByName = require('../utils/getIdEstados.js');
+const excelDateToJSDate = require('../utils/datesConverter.js');
 
 const processExcelFile = async (filePath, nameServicio) => {
     try {
