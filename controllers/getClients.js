@@ -1,5 +1,5 @@
 const { Estado, Carrera, DatosPersonales, Servicio } = require('../models/ModelDBWhatsappLedasCallCenter.js');
-const bannedNumbers = require('../utils/bannedNumbers.js'); // Numeros vetados de cualquier operacion...
+const bannedNumbers = require('../resources/bannedNumbers.js'); // Numeros vetados de cualquier operacion...
 
 /**
  * The function `getclients` is an asynchronous function in JavaScript that retrieves clients based on

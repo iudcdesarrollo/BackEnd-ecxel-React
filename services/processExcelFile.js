@@ -44,8 +44,7 @@ const processExcelFile = async (filePath, nameServicio) => {
             estado = await Estado.create({ nombre: 'no_gestionado' });
         }
 
-        // Usamos un Set para asegurarnos de que solo se envíe un mensaje por número de teléfono
-        const enviados = new Set();
+        const usuariosAEnviar = [];
 
         for (const row of data) {
             try {
@@ -75,11 +74,6 @@ const processExcelFile = async (filePath, nameServicio) => {
                 const fechaIngresoMeta = FECHA_INGRESO_META ? excelDateToJSDate(FECHA_INGRESO_META) : fechaPredeterminada;
                 const telefonoValido = validacionNumber(TELEFONO);
 
-                if (enviados.has(telefonoValido)) {
-                    console.log('Mensaje ya enviado a este número, no se reenvía:', telefonoValido);
-                    continue;
-                }
-                
                 const record = {
                     id: uuidv4(),
                     fecha_ingreso_meta: fechaIngresoMeta,
@@ -105,52 +99,70 @@ const processExcelFile = async (filePath, nameServicio) => {
                         console.log('Mensaje ya enviado, no se reenvía:', record);
                         continue;
                     }
+
+                    await DatosPersonales.update({
+                        fecha_ingreso_meta: record.fecha_ingreso_meta,
+                        nombres: record.nombres,
+                        apellidos: record.apellidos,
+                        correo: record.correo,
+                        carrera_id: record.carrera_id,
+                        estado_id: record.estado_id,
+                        enviado: false
+                    }, {
+                        where: {
+                            id: existingRecord.id
+                        }
+                    });
+                    console.log('Registro actualizado:', existingRecord);
+                } else {
+                    await DatosPersonales.create({
+                        id: record.id,
+                        fecha_ingreso_meta: record.fecha_ingreso_meta,
+                        nombres: record.nombres,
+                        apellidos: record.apellidos,
+                        correo: record.correo,
+                        telefono: record.telefono,
+                        carrera_id: record.carrera_id,
+                        estado_id: record.estado_id,
+                        servicio_id: record.servicio_id,
+                        enviado: false
+                    });
+                    console.log('Nuevo registro creado:', record);
                 }
 
-                const mensajeEnviaria = await mensajeAEnviar(NOMBRE, APELLIDO, postgraduateProcessed);
+                usuariosAEnviar.push(record);
+            } catch (rowError) {
+                console.error('Error al procesar la fila:', row, 'Error:', rowError.message);
+            }
+        }
 
-                const responseHttp = await enviarMensajeHttpPost(record.id, telefonoValido, `${NOMBRE} ${APELLIDO}`, postgraduateProcessed, mensajeEnviaria);
+        for (const usuario of usuariosAEnviar) {
+            try {
+                const mensajeEnviaria = await mensajeAEnviar(usuario.nombres, usuario.apellidos, await replacePostgraduateDegrees(usuario.carrera_id, reemplazos));
+
+                const responseHttp = await enviarMensajeHttpPost(usuario.id, usuario.telefono, `${usuario.nombres} ${usuario.apellidos}`, usuario.carrera_id, mensajeEnviaria);
                 console.log(`mensaje server de jesus: ${responseHttp.message}`);
 
-                if (responseHttp.message === 'Mensaje enviado exitosamente') {
-                    record.fecha_envio_wha = moment().format('YYYY-MM-DD HH:mm:ss');
-                    record.enviado = 1;
+                if (responseHttp.message === 'Mensaje enviado y guardado correctamente') {
+                    usuario.fecha_envio_wha = moment().format('YYYY-MM-DD HH:mm:ss');
+                    usuario.enviado = 1;
 
-                    if (existingRecord) {
-                        await DatosPersonales.update({
-                            fecha_envio_wha: record.fecha_envio_wha,
-                            enviado: true
-                        }, {
-                            where: {
-                                id: existingRecord.id
-                            }
-                        });
-                        console.log('Registro actualizado:', existingRecord);
-                    } else {
-                        await DatosPersonales.create({
-                            id: record.id,
-                            fecha_ingreso_meta: record.fecha_ingreso_meta,
-                            nombres: record.nombres,
-                            apellidos: record.apellidos,
-                            correo: record.correo,
-                            telefono: record.telefono,
-                            carrera_id: record.carrera_id,
-                            estado_id: record.estado_id,
-                            servicio_id: record.servicio_id,
-                            enviado: true,
-                            fecha_envio_wha: record.fecha_envio_wha
-                        });
-                        console.log('Nuevo registro creado:', record);
-                    }
-
-                    enviados.add(telefonoValido);
+                    await DatosPersonales.update({
+                        fecha_envio_wha: usuario.fecha_envio_wha,
+                        enviado: true
+                    }, {
+                        where: {
+                            id: usuario.id
+                        }
+                    });
+                    console.log('Registro actualizado con mensaje enviado:', usuario);
                 } else {
                     console.log('No se envió el mensaje. Respuesta del servidor:', responseHttp.message);
                 }
 
-                processedData.push(record);
-            } catch (rowError) {
-                console.error('Error al procesar la fila:', row, 'Error:', rowError.message);
+                processedData.push(usuario);
+            } catch (sendError) {
+                console.error('Error al enviar el mensaje para el usuario:', usuario, 'Error:', sendError.message);
             }
         }
 

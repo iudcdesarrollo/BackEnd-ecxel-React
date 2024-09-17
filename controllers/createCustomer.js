@@ -36,7 +36,6 @@ const createCustomer = async (req, res) => {
             console.log('Estado creado:', estado.id);
         }
 
-        // Buscar o crear el servicio basado en nameService proporcionado
         let servicio = await Servicio.findOne({ where: { nombre: nameService } });
         if (!servicio) {
             servicio = await Servicio.create({
@@ -54,7 +53,7 @@ const createCustomer = async (req, res) => {
             telefono: telefono,
             carrera_id: carrera.id,
             estado_id: estado.id,
-            servicio_id: servicio.id,  // Aquí se usa el servicio proporcionado
+            servicio_id: servicio.id,
             enviado: false,
             fecha_envio_wha: new Date(),
             fecha_ingreso_meta: null,

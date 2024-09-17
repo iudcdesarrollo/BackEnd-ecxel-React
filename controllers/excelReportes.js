@@ -1,7 +1,7 @@
 const { Estado, Carrera, DatosPersonales, Servicio } = require('../models/ModelDBWhatsappLedasCallCenter.js');
 const { Op } = require('sequelize');
 const ExcelJS = require('exceljs');
-const bannedNumbers = require('../utils/bannedNumbers.js');
+const bannedNumbers = require('../resources/bannedNumbers.js');
 
 /**
  * The excelReports function generates an Excel report based on specified query parameters, filtering
@@ -109,7 +109,6 @@ const excelReports = async (req, res) => {
             });
         };
 
-        // Llamar a la función para generar las hojas
         addSheetWithData('GESTIONADOS', gestionadoClients);
         addSheetWithData('NO_GESTIONADOS', sinGestionarClients);
         addSheetWithData('INSCRITOS', interesadosClients);
