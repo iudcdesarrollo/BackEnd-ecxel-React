@@ -138,7 +138,8 @@ const processExcelFile = async (filePath, nameServicio) => {
 
         for (const usuario of usuariosAEnviar) {
             try {
-                const carrera = await Carrera.findOne({ where: { id: usuario.carrera_id } });
+                let carrera = await Carrera.findOne({ where: { id: usuario.carrera_id } });
+                carrera = carrera.nombre
                 const mensajeEnviaria = await mensajeAEnviar(usuario.nombres, usuario.apellidos, await replacePostgraduateDegrees(carrera, reemplazos));
 
                 const responseHttp = await enviarMensajeHttpPost(usuario.id, usuario.telefono, `${usuario.nombres} ${usuario.apellidos}`, carrera, mensajeEnviaria);
