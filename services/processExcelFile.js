@@ -10,6 +10,7 @@ const mensajeAEnviar = require('./mensajePersonalisado.js');
 const validacionNumber = require('../utils/validationNumbers.js');
 const { v4: uuidv4 } = require('uuid');
 const deletedFile = require('../utils/deletedFiles.js');
+const getEstadoIdByName = require('./getIdEstados.js');
 
 const excelDateToJSDate = (serial) => {
     const utc_days = Math.floor(serial - 25569);
@@ -145,13 +146,16 @@ const processExcelFile = async (filePath, nameServicio) => {
                 const responseHttp = await enviarMensajeHttpPost(usuario.id, usuario.telefono, `${usuario.nombres} ${usuario.apellidos}`, carrera, mensajeEnviaria);
                 console.log(`mensaje server de jesus: ${responseHttp.message}`);
 
-                if (responseHttp.message === 'Mensaje enviado y guardado correctamente') {
+                if (responseHttp.message === 'Mensaje enviado y guardado correctamente.') {
+                    const mensajeAceptado = await getEstadoIdByName('MENSAJE_ACEPTADO')
+                    console.log(`este es el id que se deve actualizar: ${mensajeAceptado}`);
                     usuario.fecha_envio_wha = moment().format('YYYY-MM-DD HH:mm:ss');
                     usuario.enviado = 1;
 
                     await DatosPersonales.update({
                         fecha_envio_wha: usuario.fecha_envio_wha,
-                        enviado: true
+                        enviado: true,
+                        estado_id: mensajeAceptado
                     }, {
                         where: {
                             id: usuario.id
