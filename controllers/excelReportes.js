@@ -71,7 +71,12 @@ const excelReports = async (req, res) => {
             const estado = client.Estado && client.Estado.nombre.toLowerCase();
             return ['gestionado', 'prioridad_baja', 'prioridad_media', 'prioridad_alta'].includes(estado);
         });
-        const sinGestionarClients = clients.filter(client => client.Estado && client.Estado.nombre.toLowerCase() === 'no_gestionado');
+
+        const sinGestionarClients = clients.filter(client => {
+            const estado = client.Estado && client.Estado.nombre.toLowerCase();
+            return estado === 'no_gestionado' || ['mensaje_rechazado', 'mensaje_aceptado', 'mensaje_enviado'].includes(estado);
+        });
+
         const interesadosClients = clients.filter(client => client.Estado && client.Estado.nombre.toLowerCase() === 'inscrito');
 
         const workbook = new ExcelJS.Workbook();
