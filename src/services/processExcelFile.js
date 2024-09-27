@@ -141,7 +141,7 @@ const processExcelFile = async (filePath, nameServicio) => {
                 if (responseHttp.message === 'Mensaje enviado y guardado correctamente.') {
                     const mensajeAceptado = await getEstadoIdByName('MENSAJE_ACEPTADO');
                     usuario.fecha_envio_wha = moment().format('YYYY-MM-DD');
-                    usuario.enviado = 1; // Asegúrate de que aquí se asigna un valor booleano o numérico correcto
+                    usuario.enviado = true; // Asegúrate de que aquí se asigna un valor booleano o numérico correcto
                 
                     await DatosPersonales.update({
                         fecha_envio_wha: usuario.fecha_envio_wha,

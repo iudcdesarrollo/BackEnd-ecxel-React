@@ -4,6 +4,7 @@ const moment = require('moment');
 const processExcelFile = require('../services/processExcelFile.js');
 const insertDataFromJson = require('../utils/insertDataFromJson.js');
 const deletedFile = require('../utils/deletedFiles.js');
+const logToFile = require('../utils/logger.js');  // Importamos el logger
 
 /**
  * La función `UploadExcelFiles` maneja la carga, procesamiento e inserción de datos desde un
@@ -23,14 +24,22 @@ const UploadExcelFiles = async (req, res) => {
     
     const nameServicio = req.body.nameServicio;
 
+    const startTime = Date.now(); // Inicio del temporizador
+
     if (!req.file) {
-        return res.status(400).send('No se ha subido ningún archivo.');
+        const errorMessage = 'No se ha subido ningún archivo.';
+        console.log(errorMessage);
+        logToFile(`${new Date().toISOString()} - [${req.method} ${req.originalUrl}] - ${errorMessage}`, true);
+        return res.status(400).send(errorMessage);
     }
 
     const extname = path.extname(req.file.originalname).toLowerCase();
 
     if (extname !== '.xlsx' && extname !== '.xls') {
-        return res.status(400).send('El archivo subido no es un archivo Excel válido. Solo se permiten archivos .xlsx y .xls.');
+        const errorMessage = 'El archivo subido no es un archivo Excel válido. Solo se permiten archivos .xlsx y .xls.';
+        console.log(errorMessage);
+        logToFile(`${new Date().toISOString()} - [${req.method} ${req.originalUrl}] - ${errorMessage}`, true);
+        return res.status(400).send(errorMessage);
     }
 
     const basename = path.basename(req.file.originalname, extname);
@@ -39,22 +48,35 @@ const UploadExcelFiles = async (req, res) => {
 
     fs.rename(req.file.path, newFilePath, async (err) => {
         if (err) {
-            return res.status(500).send('Error al procesar el archivo Excel.');
+            const errorMessage = 'Error al procesar el archivo Excel.';
+            console.error(errorMessage, err);
+            logToFile(`${new Date().toISOString()} - [${req.method} ${req.originalUrl}] - ${errorMessage}`, true);
+            return res.status(500).send(errorMessage);
         }
 
         try {
-            const jsonFilePath = await processExcelFile(newFilePath,nameServicio);
+            const jsonFilePath = await processExcelFile(newFilePath, nameServicio);
 
-            //await insertDataFromJson(jsonFilePath);
+            // await insertDataFromJson(jsonFilePath); // Descomentar si es necesario
 
             await deletedFile(jsonFilePath);
 
+            const successMessage = 'Datos procesados e insertados exitosamente.';
+            console.log(successMessage);
+            const endTime = Date.now();
+            const duration = endTime - startTime;
+
+            // Log de éxito
+            logToFile(`${new Date().toISOString()} - [${req.method} ${req.originalUrl}] - ${successMessage} - Duration: ${duration}ms`, false);
             res.json({
-                message: 'Datos procesados e insertados exitosamente.',
+                message: successMessage,
                 jsonFile: jsonFilePath
             });
         } catch (error) {
-            res.status(500).send('Error al procesar el archivo Excel: ' + error.message);
+            const errorMessage = 'Error al procesar el archivo Excel: ' + error.message;
+            console.error(errorMessage);
+            logToFile(`${new Date().toISOString()} - [${req.method} ${req.originalUrl}] - ${errorMessage}`, true);
+            res.status(500).send(errorMessage);
         }
     });
 };

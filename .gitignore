@@ -6,3 +6,6 @@ src/temp/*
 
 src/public/*
 !src/public/.gitkeep
+
+src/logs/error/
+src/logs/success/
