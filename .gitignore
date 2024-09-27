@@ -1,8 +1,8 @@
 node_modules/
 .env
 
-tmp/*
-!tmp/.gitkeep
+src/temp/*
+!src/temp/.gitkeep
 
-public/*
-!public/.gitkeep
+src/public/*
+!src/public/.gitkeep

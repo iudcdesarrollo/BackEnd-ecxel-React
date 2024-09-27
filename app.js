@@ -2,9 +2,10 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const app = express();
-const authMiddleware = require('./middleware/AuthMidelware');
-const preventionOfDenialOfService = require('./middleware/DoS')
-const codeInjectionPrevention = require('./middleware/codeInjectionPrevention');
+const authMiddleware = require('./src/middleware/AuthMidelware');
+const preventionOfDenialOfService = require('./src/middleware/DoS')
+const codeInjectionPrevention = require('./src/middleware/codeInjectionPrevention');
+const loggerMiddleware = require('./src/middleware/logs/loggerMiddleware');
 
 const corsOptions = {
     origin: process.env.ENPOINT_FRONT,
@@ -15,10 +16,11 @@ const corsOptions = {
 app.use(cors(corsOptions));
 app.use(express.json());
 //app.use(codeInjectionPrevention);
+//app.use(loggerMiddleware);
 preventionOfDenialOfService(app);
 //app.use(authMiddleware);
 
-const uploadRoutes = require('./routes/uploadsRoutes');
+const uploadRoutes = require('./src/routes/uploadsRoutes');
 app.use('/api', uploadRoutes);
 
 module.exports = app;
