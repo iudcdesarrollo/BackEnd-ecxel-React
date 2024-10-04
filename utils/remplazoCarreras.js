@@ -15,6 +15,7 @@ const reemplazos = {
     "PRE-GRADOS MEDICINA VET Y ZOO 2024-IA":"Medicina Veterinaria y Zootecnia",
     "PRE-GRADOS ARQUITECTURA IUDC 2024 IA":"Arquitectura",
     "IUDC-PREGRADO IUDC DERECHO 2024 - IA Conjunto de anuncios":"Derecho",
+    "PRE-GRADOS INGENIERÍA DE SOFTWARE 2024 , fb759773986099556": "Ingeniería de Software",
     // Pregrados Generales...
     "PRE-GRADOS GENERAL-V2": "Pregrado",
     "IUDC-PREGRADO IUDC DERECHO 2024 - IA Conjunto de anuncios": "Pregrado",
@@ -41,6 +42,22 @@ const reemplazos = {
     "PRE-GRADOS INGENIERÍA DE SISTEMAS FDS": "Ingeniería de Sistemas",
     "PRE-GRADOS INGENIERÍA DE SOFTWARE FDS": "Ingeniería de Software",
     "PRE-GRADOS ARQUITECTUTA FDS": "Arquitectura",
+    "PRE-GRADOS INGENIERÍA DE SOFTWARE 2024, fb759773986099556":"Ingeniería de Software",
+    "PRE-GRADOS ADMINISTRACION DE EMPRESAS 2024, fb424090936672398":"Administración de Empresas",
+    "PRE-GRADOS DERECHO FDS-V2, fb7839340146142745":"Derecho",
+    "PRE-GRADOS DERECHO 2024, fb377580985048102":"Derecho",
+    "PRE-GRADOS MEDICINA VET Y ZOO 2024, fb1610660009765687":"Medicina Veterinaria",
+    "PRE-GRADOS CONTADURIA PUBLICA 2024, fb1452842752336312":"contaduria publica",
+    "PRE-GRADOS ARQUITECTURA IUDC 2024, fb784936053125973":"Arquitectura",
+    "PRE-GRADOS PSICOLOGÍA IUDC FDS V2, fb1567561387162296":"PSICOLOGÍA",
+    "PRE-GRADOS GENERAL-V2, fb1613328812545484":" ",
+    "PRE-GRADOS INGENIERÍA INDUSTRIAL 2024, fb1146508933174687":"Ingenieria industrial",
+    "PRE-GRADOS DERECHO 2024-IA, fb432477249245393":"Derecho",
+    "PRE-GRADOS MEDICINA VET Y ZOO 2024-IA, fb433683736357301":"Medicina veterinaria",
+    "PRE-GRADOS ARQUITECTURA FDS, fb1380053479367809":"Arquitectura",
+    "PRE-GRADOS GENERAL-V2-2, fb373625919103297":" ",
+    "PRE-GRADOS GENERAL-V2, fb1613328812545484":" ",
+    "SU PROF Psicología 2024, fb3841007009465752": "Psicologia",
 
     // Tecnicos
     "TÉCNICAS IUDC COMUNICACIÓN GRÁFICA Y PUBLICITARIA 2024": "Auxiliar de Diseño grafico",
@@ -55,13 +72,20 @@ const reemplazos = {
     "TÉCNICAS IUDC CONTABLE Y FINANCIERO 2024": "Auxiliar Contable y Financiero",
     "TÉCNICAS IUDC ENFERMERIA 2024": "Auxiliar en Enfermería",
     "TÉCNICAS IUDC RECURSOS HUMANOS 2024": "Auxiliar en Talento Humano",
+    "TÉCNICAS IUDC ENFERMERIA 2024 , fb1558621438257310":"Enfermeria",
+    "TÉCNICAS IUDC CLINICA VETERINARIA Y CUIDADO DE MASCOTAS- 2024, fb7455745447823365":"Auxiliar en Clínica Veterinaria",
+    "TÉCNICAS IUDC DISEÑO DE MODAS 2024, fb930393552143925":"Diseño de modas",
+    "TÉCNICAS IUDC COCINA NAL E INTERNACIONAL 2024, fb919920320135789":"Cocina Internacional",
+    "TÉCNICAS IUDC JUDICIAL Y CRIMINALISTICA 2024, fb397983712877279":"Investigadores Judiciales y Criminalísticos",
 
     // Posgrados
     "Postgrado en Derecho Administrativo y Contractual IUDC 2024": "Especialización en Derecho Administrativo y Contractual",
     "Postgrado en Derecho Penal y Criminalistica 2024": "Especialización en Derecho Penal y Criminalística ",
     "Postgrado en Gerencia de Empresas 2024": "Especialización en Gerencia de Empresas",
     "Postgrado en Gerencia Financiera 2024": "Especialización en Gerencia Financiera",
-    "Postgrado en Gerencia de Talento Humano 2024": "Especialización en Gerencia de Talento Humano"
+    "Postgrado en Gerencia de Talento Humano 2024": "Especialización en Gerencia de Talento Humano",
+    "Postgrado en Gerencia de Talento Humano 2024, fb1323660005702690":"Especialización en Gerencia de Talento Humano",
+    "Postgrado en Derecho Administrativo y Contractual IUDC 2024, fb424942290105613":"Especialización en Derecho Administrativo y Contractual"
 };
 
 module.exports = reemplazos;
