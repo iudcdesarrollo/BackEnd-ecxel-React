@@ -6,7 +6,12 @@ const path = require('path');
 async function uploadFileToS3(filePath) {
     const bucketRegion = process.env.AWS_REGION;
     const bucketName = process.env.BUCKED_NAME;
-    const s3Client = new S3Client({});
+    const s3Client = new S3Client({
+        credentials: {
+            accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+            secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY
+        }
+    });
     try {
         const fileContent = await readFile(filePath);
         const fileName = path.basename(filePath);
