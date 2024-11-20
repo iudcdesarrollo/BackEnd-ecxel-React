@@ -8,8 +8,8 @@ async function startServer() {
     try {
         app.listen(PORT, () => {
             console.log(`Servidor escuchando en puerto ${PORT}`);
-            const interval = 24 * 60 * 60 * 1000;
-            setInterval(backupDB, interval);
+            //const interval = 24 * 60 * 60 * 1000;
+            //setInterval(backupDB, interval);
         });
     } catch (error) {
         console.error(`Error al inicializar el servidor: ${error.message}`);
