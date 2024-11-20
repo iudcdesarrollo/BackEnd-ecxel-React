@@ -22,14 +22,17 @@ const axios = require('axios');
  * request made to the specified endpoint. If the request is successful (status code 200), it returns
  * the response data. If there is an error during the request, it logs the error and throws it.
  */
-const enviarMensajeHttpPost = async (IdClientDBB, numero, nombre, interes, mensajePersonalizado) => {
+const enviarMensajeHttpPost = async (IdClientDBB, numero, nombre, interes, templateNammee) => {
     const payload = {
         id: IdClientDBB,
         number: numero,
+        templateName: templateNammee,
         names: nombre,
-        interest: interes,
-        template: mensajePersonalizado
+        interest: interes
     };
+
+    console.log(payload.id, payload.number, payload.templateName,payload.interest
+    );
 
     const url = process.env.ENPOINT;
 

@@ -48,9 +48,11 @@ const manualCustomerEntry = async (req, res) => {
             servicioEncontrado = await Servicio.create({ id: uuidv4(), nombre: servicio });
         }
 
-        const mensajeEnviaria = await mensajeAEnviar(nombre, apellido, posgradoProcesado);
+        //const mensajeEnviaria = await mensajeAEnviar(nombre, apellido, posgradoProcesado);
 
-        const responseHttp = await enviarMensajeHttpPost(nuevoId, telefonoValido, `${nombre} ${apellido}`, posgradoProcesado, mensajeEnviaria);
+        const templateConst = `bienvenida_1`;
+
+        const responseHttp = await enviarMensajeHttpPost(nuevoId, telefonoValido, `${nombre} ${apellido}`, posgradoProcesado, templateConst);
 
         if (responseHttp.message === 'Mensaje enviado y guardado correctamente.') {
             const existingRecord = await DatosPersonales.findOne({
